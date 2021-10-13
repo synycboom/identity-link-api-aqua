@@ -15,3 +15,5 @@ services/*/debug/
 services/*/target/
 **/*.rs.bk
 *.pdb
+
+client/node_modules/
