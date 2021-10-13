@@ -17,3 +17,5 @@ services/*/target/
 *.pdb
 
 client/node_modules/
+services/*/node_modules/
+services/*/dist/

@@ -1,0 +1,49 @@
+{
+  "name": "identity-link-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "cd ../.. && husky install services/identity-link-service/.husky",
+    "lint": "eslint src/**/*.ts",
+    "lint-staged": "lint-staged",
+    "format": "eslint src/**/*.ts --fix",
+    "build": "webpack",
+    "build:dev": "NODE_ENV=development webpack",
+    "monitor:dev": "NODE_ENV=development nodemon dist/bundle.js",
+    "start": "NODE_ENV=development npm-run-all --parallel build:dev monitor:dev"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@fluencelabs/aqua": "^0.3.2-232",
+    "@fluencelabs/aqua-lib": "^0.1.14",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.2.3",
+    "nodemon": "^2.0.13",
+    "npm-run-all": "^4.1.5",
+    "prettier": "2.4.1",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.4.4",
+    "webpack": "^5.58.2",
+    "webpack-cli": "^4.9.0",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "dependencies": {
+    "@fluencelabs/fluence": "^0.13.0",
+    "@fluencelabs/fluence-network-environment": "^1.0.10"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --quiet --fix -c .eslintrc"
+    ],
+    "*.{json,md,js,ts}": [
+      "prettier --write"
+    ]
+  }
+}
