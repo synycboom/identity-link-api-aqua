@@ -8,18 +8,20 @@
     "lint": "eslint src/**/*.ts",
     "lint-staged": "lint-staged",
     "format": "eslint src/**/*.ts --fix",
-    "build": "webpack",
+    "build:release": "NODE_ENV=production webpack",
     "build:dev": "NODE_ENV=development webpack",
-    "monitor:dev": "NODE_ENV=development nodemon dist/bundle.js",
+    "compile-aqua": "aqua -i ./aqua/ -o ./src/_aqua",
+    "monitor:dev": "NODE_ENV=development nodemon -r dotenv/config dist/bundle.js",
     "start": "NODE_ENV=development npm-run-all --parallel build:dev monitor:dev"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@fluencelabs/aqua": "^0.3.2-232",
+    "@fluencelabs/aqua": "^0.3.1-231",
     "@fluencelabs/aqua-lib": "^0.1.14",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "dotenv": "^10.0.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -36,7 +38,8 @@
   },
   "dependencies": {
     "@fluencelabs/fluence": "^0.13.0",
-    "@fluencelabs/fluence-network-environment": "^1.0.10"
+    "@fluencelabs/fluence-network-environment": "^1.0.10",
+    "winston": "^3.3.3"
   },
   "lint-staged": {
     "*.{js,ts}": [
