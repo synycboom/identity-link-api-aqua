@@ -1,42 +1,34 @@
+import { Fluence } from '@fluencelabs/fluence';
+import { krasnodar } from '@fluencelabs/fluence-network-environment';
 import logger from '@/logger';
-import {
-  registerIdentityLinkService,
-  IdentityLinkServiceDef,
-} from '@/_aqua/identity-link-service';
+import registerGithubService from '@/github';
 
-type GithubRequestParams = Parameters<IdentityLinkServiceDef['githubRequest']>;
-type GithubVerifyParams = Parameters<IdentityLinkServiceDef['githubVerify']>;
+const relay = krasnodar[0];
 
-type GithubRequestReturn = ReturnType<IdentityLinkServiceDef['githubRequest']>;
-type GithubVerifyReturn = ReturnType<IdentityLinkServiceDef['githubVerify']>;
+export const registerService = () => {
+  registerGithubService();
 
-class IdentityLinkService implements IdentityLinkServiceDef {
-  githubRequest(
-    req: GithubRequestParams[0],
-    callParams: GithubRequestParams[1]
-  ): GithubRequestReturn {
-    return {
-      code: 200,
-      data: {
-        challengeCode: '',
-      },
-      error: '',
-    };
-  }
-  githubVerify(
-    req: GithubVerifyParams[0],
-    callParams: GithubVerifyParams[1]
-  ): GithubVerifyReturn {
-    return {
-      code: 200,
-      data: {
-        attestation: '',
-      },
-    };
-  }
-}
+  logger.info('[registerService]: registered the services');
+};
 
-export const registerService = async () => {
-  registerIdentityLinkService(new IdentityLinkService());
-  logger.info('[registerService]: registered the service');
+export const connectToRelay = async () => {
+  await Fluence.start({ connectTo: relay });
+
+  logger.info('[connectToRelay]: connected to the relay', {
+    relayPeer: relay,
+  });
+
+  const { relayPeerId, peerId } = Fluence.getStatus();
+  logger.info('[connectToRelay]: connection information', {
+    peerId,
+    relayPeerId,
+  });
+};
+
+export const disconnectFromRelay = async () => {
+  await Fluence.stop();
+
+  logger.info('[disconnectFromRelay]: disconnected from the relay', {
+    relayPeer: relay,
+  });
 };

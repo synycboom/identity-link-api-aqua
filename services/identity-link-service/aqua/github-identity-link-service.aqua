@@ -1,12 +1,5 @@
 import "@fluencelabs/aqua-lib/builtin.aqua"
 
-data RegisterReponse:
-  code: u32
-  error: string
-
-service IdentityLinkRouter:
-  register(payload: string, signature: string) -> RegisterReponse
-
 data GithubRequest:
   did: string
   username: string
@@ -26,6 +19,6 @@ data GithubVerifyResult:
   code: u32
   data: GithubIdentity
 
-service IdentityLinkService("identity-link-service"):
+service GithubIdentityLinkService("github-identity-link-service"):
   githubRequest(req: GithubRequest) -> GithubRequestResult
   githubVerify(req: GithubRequest) -> GithubVerifyResult

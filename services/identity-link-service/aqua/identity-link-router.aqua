@@ -1,0 +1,6 @@
+data RegisterReponse:
+  code: u32
+  error: string
+
+service IdentityLinkRouter:
+  register(payload: string, signature: string) -> RegisterReponse

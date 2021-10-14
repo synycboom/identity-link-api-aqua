@@ -7,8 +7,11 @@ import { runHealth } from '@/health';
     await app();
     logger.info('stop running service');
     process.exit();
-  } catch (error) {
-    logger.error(error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      logger.error(error.toString());
+    }
+
     process.exit(1);
   }
 })();
