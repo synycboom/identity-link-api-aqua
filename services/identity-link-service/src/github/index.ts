@@ -1,6 +1,7 @@
 import { request } from '@octokit/request';
 import { randomString } from '@stablelib/random';
-import { registerGithubIdentityLinkService } from '@/github/fluence';
+import { registerGithubIdentityLinkService } from '@/_aqua/github-identity-link-service';
+import { sendGithubRequestResult } from '@/_aqua/github-requester';
 import * as settings from '@/setting';
 import {
   GithubRequestParams,
@@ -25,10 +26,15 @@ const client = request.defaults({
 
 const challengeKey = (did: string) => `${did}:github`;
 
-const githubRequest = async (
+const sendChallenge = async (
   req: GithubRequestParams[0],
-  callParams: GithubRequestParams[1]
-): GithubRequestReturn => {
+  reqPeer: GithubRequestParams[1],
+  callParams: GithubRequestParams[2]
+) => {
+  logger.info('send result', {
+    req,
+    callParams,
+  });
   const challengeCode = randomString(32);
   const { did, username } = req;
   const data = {
@@ -50,21 +56,31 @@ const githubRequest = async (
     error: '',
   };
 
-  if (!username) {
-    res.code = 400;
-    res.error = `"username" is required`;
-
-    return res;
-  }
-
-  if (!did) {
-    res.code = 400;
-    res.error = `"did" is required`;
-
-    return res;
-  }
-
   try {
+    if (!username) {
+      res.code = 400;
+      res.error = `"username" is required`;
+
+      return await sendGithubRequestResult(
+        res,
+        reqPeer.peerId,
+        reqPeer.relayPeerId,
+        !!reqPeer.relayPeerId
+      );
+    }
+
+    if (!did) {
+      res.code = 400;
+      res.error = `"did" is required`;
+
+      return await sendGithubRequestResult(
+        res,
+        reqPeer.peerId,
+        reqPeer.relayPeerId,
+        !!reqPeer.relayPeerId
+      );
+    }
+
     await cache.set(challengeKey(did), data);
     res.code = 200;
     res.data.challengeCode = challengeCode;
@@ -81,24 +97,29 @@ const githubRequest = async (
     logger.error(`[githubRequest]: unknown error; ${err}`, meta);
   }
 
-  return res;
-};
-
-const githubVerify = async (
-  req: GithubVerifyParams[0],
-  callParams: GithubVerifyParams[1]
-): GithubVerifyReturn => {
-  return {
-    code: 200,
-    data: {
-      attestation: '',
-    },
-  };
+  return await sendGithubRequestResult(
+    res,
+    reqPeer.peerId,
+    reqPeer.relayPeerId,
+    !!reqPeer.relayPeerId
+  );
 };
 
 export default function register() {
   registerGithubIdentityLinkService({
-    githubRequest,
-    githubVerify,
+    githubRequest(
+      req: GithubRequestParams[0],
+      reqPeer: GithubRequestParams[1],
+      callParams: GithubRequestParams[2]
+    ) {
+      sendChallenge(req, reqPeer, callParams);
+    },
+    githubVerify(
+      req: GithubVerifyParams[0],
+      reqPeer: GithubVerifyParams[1],
+      callParams: GithubRequestParams[2]
+    ) {
+      logger.debug('githubVerify');
+    },
   });
 }

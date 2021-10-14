@@ -10,6 +10,7 @@
     "node": true,
     "es6": true
   },
+  "ignorePatterns": ["src/_aqua/*.ts"],
   "overrides": [
     {
       "files": ["webpack.config.js"],

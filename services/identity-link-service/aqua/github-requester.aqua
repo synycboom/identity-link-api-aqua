@@ -1,0 +1,27 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+
+data GithubChallenge:
+  challengeCode: string
+
+data GithubRequestResult:
+  code: u32
+  data: GithubChallenge
+  error: string
+
+data GithubIdentity:
+  attestation: string
+
+data GithubVerifyResult:
+  code: u32
+  data: GithubIdentity
+
+service GithubRequester("github-requester"):
+  onRequestResult(res: GithubRequestResult)
+
+func sendGithubRequestResult(res: GithubRequestResult, peerId: PeerId, relayPeerId: PeerId, hasRelayPeer: bool):
+  if hasRelayPeer:
+    on peerId via relayPeerId:
+      GithubRequester.onRequestResult(res)
+  else:
+    on peerId:
+      GithubRequester.onRequestResult(res)

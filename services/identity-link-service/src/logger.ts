@@ -5,7 +5,6 @@ const logger = winston.createLogger({
   exitOnError: false,
   level,
   format: winston.format.json(),
-  defaultMeta: { service: 'identity-link-service' },
   transports: [new winston.transports.Console()],
 });
 

@@ -1,4 +1,4 @@
-import { GithubIdentityLinkServiceDef } from '@/github/fluence';
+import { GithubIdentityLinkServiceDef } from '@/_aqua/github-identity-link-service';
 
 export type GithubRequestParams = Parameters<
   GithubIdentityLinkServiceDef['githubRequest']
