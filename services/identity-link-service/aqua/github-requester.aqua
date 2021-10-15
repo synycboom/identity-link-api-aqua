@@ -1,4 +1,5 @@
 import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
 
 data GithubChallenge:
   challengeCode: string
@@ -7,6 +8,7 @@ data GithubRequestResult:
   code: u32
   data: GithubChallenge
   error: string
+  requestId: string
 
 data GithubIdentity:
   attestation: string
@@ -14,14 +16,25 @@ data GithubIdentity:
 data GithubVerifyResult:
   code: u32
   data: GithubIdentity
+  error: string
+  requestId: string
 
 service GithubRequester("github-requester"):
   onRequestResult(res: GithubRequestResult)
+  onVerifyResult(res: GithubVerifyResult)
 
-func sendGithubRequestResult(res: GithubRequestResult, peerId: PeerId, relayPeerId: PeerId, hasRelayPeer: bool):
-  if hasRelayPeer:
-    on peerId via relayPeerId:
+func onRequestResult(res: GithubRequestResult, reqPeer: RequesterPeer):
+  if reqPeer.hasRelayPeer:
+    on reqPeer.peerId via reqPeer.relayPeerId:
       GithubRequester.onRequestResult(res)
   else:
-    on peerId:
+    on reqPeer.peerId:
       GithubRequester.onRequestResult(res)
+
+func onVerifyResult(res: GithubVerifyResult, reqPeer: RequesterPeer):
+  if reqPeer.hasRelayPeer:
+    on reqPeer.peerId via reqPeer.relayPeerId:
+      GithubRequester.onVerifyResult(res)
+  else:
+    on reqPeer.peerId:
+      GithubRequester.onVerifyResult(res)

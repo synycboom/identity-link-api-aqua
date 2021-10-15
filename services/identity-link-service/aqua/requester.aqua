@@ -1,0 +1,6 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+
+data RequesterPeer:
+  peerId: PeerId
+  relayPeerId: PeerId
+  hasRelayPeer: bool

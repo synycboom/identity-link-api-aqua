@@ -1,13 +1,13 @@
 import "@fluencelabs/aqua-lib/builtin.aqua"
-
-data RequesterPeer:
-  peerId: PeerId
-  relayPeerId: PeerId
+import "requester.aqua"
 
 data GithubRequest:
   did: string
   username: string
 
+data GithubVerify:
+  jws: string
+
 service GithubIdentityLinkService("github-identity-link-service"):
-  githubRequest(req: GithubRequest, reqPeer: RequesterPeer)
-  githubVerify(req: GithubRequest, reqPeer: RequesterPeer)
+  githubRequest(req: GithubRequest, requestId: string, reqPeer: RequesterPeer)
+  githubVerify(req: GithubVerify, requestId: string, reqPeer: RequesterPeer)

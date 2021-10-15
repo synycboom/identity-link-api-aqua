@@ -37,10 +37,13 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
+    "@ceramicnetwork/key-did-resolver": "^0.2.2",
     "@fluencelabs/fluence": "^0.13.0",
     "@fluencelabs/fluence-network-environment": "^1.0.10",
     "@octokit/request": "^5.6.2",
     "@stablelib/random": "^1.0.1",
+    "dids": "^2.4.0",
+    "node-fetch": "^3.0.0",
     "redis": "^4.0.0-rc.3",
     "winston": "^3.3.3"
   },

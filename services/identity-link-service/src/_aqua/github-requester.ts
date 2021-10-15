@@ -8,147 +8,199 @@
  */
 import { Fluence, FluencePeer } from '@fluencelabs/fluence';
 import {
-    ResultCodes,
-    RequestFlow,
-    RequestFlowBuilder,
-    CallParams
+  ResultCodes,
+  RequestFlow,
+  RequestFlowBuilder,
+  CallParams,
 } from '@fluencelabs/fluence/dist/internal/compilerSupport/v1';
 
-
 function missingFields(obj: any, fields: string[]): string[] {
-    return fields.filter(f => !(f in obj))
+  return fields.filter(f => !(f in obj));
 }
 
 // Services
 
 export interface GithubRequesterDef {
-    onRequestResult: (res: { code: number; data: { challengeCode: string; }; error: string; }, callParams: CallParams<'res'>) => void;
+  onRequestResult: (
+    res: {
+      code: number;
+      data: { challengeCode: string };
+      error: string;
+      requestId: string;
+    },
+    callParams: CallParams<'res'>
+  ) => void;
+  onVerifyResult: (
+    res: {
+      code: number;
+      data: { attestation: string };
+      error: string;
+      requestId: string;
+    },
+    callParams: CallParams<'res'>
+  ) => void;
 }
 export function registerGithubRequester(service: GithubRequesterDef): void;
-export function registerGithubRequester(serviceId: string, service: GithubRequesterDef): void;
-export function registerGithubRequester(peer: FluencePeer, service: GithubRequesterDef): void;
-export function registerGithubRequester(peer: FluencePeer, serviceId: string, service: GithubRequesterDef): void;
-
+export function registerGithubRequester(
+  serviceId: string,
+  service: GithubRequesterDef
+): void;
+export function registerGithubRequester(
+  peer: FluencePeer,
+  service: GithubRequesterDef
+): void;
+export function registerGithubRequester(
+  peer: FluencePeer,
+  serviceId: string,
+  service: GithubRequesterDef
+): void;
 
 export function registerGithubRequester(...args: any) {
-    let peer: FluencePeer;
-    let serviceId: any;
-    let service: any;
-    if (FluencePeer.isInstance(args[0])) {
-        peer = args[0];
-    } else {
-        peer = Fluence.getPeer();
+  let peer: FluencePeer;
+  let serviceId: any;
+  let service: any;
+  if (FluencePeer.isInstance(args[0])) {
+    peer = args[0];
+  } else {
+    peer = Fluence.getPeer();
+  }
+
+  if (typeof args[0] === 'string') {
+    serviceId = args[0];
+  } else if (typeof args[1] === 'string') {
+    serviceId = args[1];
+  } else {
+    serviceId = 'github-requester';
+  }
+
+  // Figuring out which overload is the service.
+  // If the first argument is not Fluence Peer and it is an object, then it can only be the service def
+  // If the first argument is peer, we are checking further. The second argument might either be
+  // an object, that it must be the service object
+  // or a string, which is the service id. In that case the service is the third argument
+  if (!FluencePeer.isInstance(args[0]) && typeof args[0] === 'object') {
+    service = args[0];
+  } else if (typeof args[1] === 'object') {
+    service = args[1];
+  } else {
+    service = args[2];
+  }
+
+  const incorrectServiceDefinitions = missingFields(service, [
+    'onRequestResult',
+    'onVerifyResult',
+  ]);
+  if (!!incorrectServiceDefinitions.length) {
+    throw new Error(
+      'Error registering service GithubRequester: missing functions: ' +
+        incorrectServiceDefinitions.map(d => "'" + d + "'").join(', ')
+    );
+  }
+
+  peer.internals.callServiceHandler.use((req, resp, next) => {
+    if (req.serviceId !== serviceId) {
+      next();
+      return;
     }
 
-    if (typeof args[0] === 'string') {
-        serviceId = args[0];
-    } else if (typeof args[1] === 'string') {
-        serviceId = args[1];
-    } else {
-        serviceId = "github-requester"
+    if (req.fnName === 'onRequestResult') {
+      const callParams = {
+        ...req.particleContext,
+        tetraplets: {
+          res: req.tetraplets[0],
+        },
+      };
+      resp.retCode = ResultCodes.success;
+      service.onRequestResult(req.args[0], callParams);
+      resp.result = {};
     }
 
-    // Figuring out which overload is the service.
-    // If the first argument is not Fluence Peer and it is an object, then it can only be the service def
-    // If the first argument is peer, we are checking further. The second argument might either be
-    // an object, that it must be the service object
-    // or a string, which is the service id. In that case the service is the third argument
-    if (!(FluencePeer.isInstance(args[0])) && typeof args[0] === 'object') {
-        service = args[0];
-    } else if (typeof args[1] === 'object') {
-        service = args[1];
-    } else {
-        service = args[2];
+    if (req.fnName === 'onVerifyResult') {
+      const callParams = {
+        ...req.particleContext,
+        tetraplets: {
+          res: req.tetraplets[0],
+        },
+      };
+      resp.retCode = ResultCodes.success;
+      service.onVerifyResult(req.args[0], callParams);
+      resp.result = {};
     }
 
-    const incorrectServiceDefinitions = missingFields(service, ['onRequestResult']);
-    if (!!incorrectServiceDefinitions.length) {
-        throw new Error("Error registering service GithubRequester: missing functions: " + incorrectServiceDefinitions.map((d) => "'" + d + "'").join(", "))
-    }
-
-    peer.internals.callServiceHandler.use((req, resp, next) => {
-        if (req.serviceId !== serviceId) {
-            next();
-            return;
-        }
-
-        if (req.fnName === 'onRequestResult') {
-            const callParams = {
-                ...req.particleContext,
-                tetraplets: {
-                    res: req.tetraplets[0]
-                },
-            };
-            resp.retCode = ResultCodes.success;
-            service.onRequestResult(req.args[0], callParams); resp.result = {}
-        }
-
-        next();
-    });
+    next();
+  });
 }
 
 // Functions
-export type SendGithubRequestResultArgRes = { code: number; data: { challengeCode: string; }; error: string; }
+export type OnRequestResultArgRes = {
+  code: number;
+  data: { challengeCode: string };
+  error: string;
+  requestId: string;
+};
+export type OnRequestResultArgReqPeer = {
+  hasRelayPeer: boolean;
+  peerId: string;
+  relayPeerId: string;
+};
 
-export function sendGithubRequestResult(res: SendGithubRequestResultArgRes, peerId: string, relayPeerId: string, hasRelayPeer: boolean, config?: {ttl?: number}): Promise<void>;
-export function sendGithubRequestResult(peer: FluencePeer, res: SendGithubRequestResultArgRes, peerId: string, relayPeerId: string, hasRelayPeer: boolean, config?: {ttl?: number}): Promise<void>;
-export function sendGithubRequestResult(...args: any) {
-    let peer: FluencePeer;
-    let res: any;
-    let peerId: any;
-    let relayPeerId: any;
-    let hasRelayPeer: any;
-    let config: any;
-    if (FluencePeer.isInstance(args[0])) {
-        peer = args[0];
-        res = args[1];
-        peerId = args[2];
-        relayPeerId = args[3];
-        hasRelayPeer = args[4];
-        config = args[5];
-    } else {
-        peer = Fluence.getPeer();
-        res = args[0];
-        peerId = args[1];
-        relayPeerId = args[2];
-        hasRelayPeer = args[3];
-        config = args[4];
-    }
+export function onRequestResult(
+  res: OnRequestResultArgRes,
+  reqPeer: OnRequestResultArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function onRequestResult(
+  peer: FluencePeer,
+  res: OnRequestResultArgRes,
+  reqPeer: OnRequestResultArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function onRequestResult(...args: any) {
+  let peer: FluencePeer;
+  let res: any;
+  let reqPeer: any;
+  let config: any;
+  if (FluencePeer.isInstance(args[0])) {
+    peer = args[0];
+    res = args[1];
+    reqPeer = args[2];
+    config = args[3];
+  } else {
+    peer = Fluence.getPeer();
+    res = args[0];
+    reqPeer = args[1];
+    config = args[2];
+  }
 
-    let request: RequestFlow;
-    const promise = new Promise<void>((resolve, reject) => {
-        const r = new RequestFlowBuilder()
-                .disableInjections()
-                .withRawScript(`
+  let request: RequestFlow;
+  const promise = new Promise<void>((resolve, reject) => {
+    const r = new RequestFlowBuilder()
+      .disableInjections()
+      .withRawScript(
+        `
                     (xor
                      (seq
                       (seq
                        (seq
-                        (seq
-                         (seq
-                          (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
-                          (call %init_peer_id% ("getDataSrv" "res") [] res)
-                         )
-                         (call %init_peer_id% ("getDataSrv" "peerId") [] peerId)
-                        )
-                        (call %init_peer_id% ("getDataSrv" "relayPeerId") [] relayPeerId)
+                        (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+                        (call %init_peer_id% ("getDataSrv" "res") [] res)
                        )
-                       (call %init_peer_id% ("getDataSrv" "hasRelayPeer") [] hasRelayPeer)
+                       (call %init_peer_id% ("getDataSrv" "reqPeer") [] reqPeer)
                       )
                       (xor
-                       (match hasRelayPeer true
+                       (match reqPeer.$.hasRelayPeer! true
                         (xor
                          (seq
                           (seq
                            (call -relay- ("op" "noop") [])
-                           (call relayPeerId ("op" "noop") [])
+                           (call reqPeer.$.relayPeerId! ("op" "noop") [])
                           )
                           (xor
-                           (call peerId ("github-requester" "onRequestResult") [res])
+                           (call reqPeer.$.peerId! ("github-requester" "onRequestResult") [res])
                            (seq
                             (seq
                              (seq
-                              (call relayPeerId ("op" "noop") [])
+                              (call reqPeer.$.relayPeerId! ("op" "noop") [])
                               (call -relay- ("op" "noop") [])
                              )
                              (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 1])
@@ -160,7 +212,7 @@ export function sendGithubRequestResult(...args: any) {
                          (seq
                           (seq
                            (seq
-                            (call relayPeerId ("op" "noop") [])
+                            (call reqPeer.$.relayPeerId! ("op" "noop") [])
                             (call -relay- ("op" "noop") [])
                            )
                            (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 2])
@@ -171,7 +223,7 @@ export function sendGithubRequestResult(...args: any) {
                        )
                        (seq
                         (xor
-                         (call peerId ("github-requester" "onRequestResult") [res])
+                         (call reqPeer.$.peerId! ("github-requester" "onRequestResult") [res])
                          (seq
                           (seq
                            (call -relay- ("op" "noop") [])
@@ -186,41 +238,186 @@ export function sendGithubRequestResult(...args: any) {
                      )
                      (seq
                       (seq
-                       (call relayPeerId ("op" "noop") [])
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
                        (call -relay- ("op" "noop") [])
                       )
                       (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 4])
                      )
                     )
-                `,
-                )
-                .configHandler((h) => {
-                    h.on('getDataSrv', '-relay-', () => {
-                        return peer.getStatus().relayPeerId;
-                    });
-                    h.on('getDataSrv', 'res', () => {return res;});
-                    h.on('getDataSrv', 'peerId', () => {return peerId;});
-                    h.on('getDataSrv', 'relayPeerId', () => {return relayPeerId;});
-                    h.on('getDataSrv', 'hasRelayPeer', () => {return hasRelayPeer;});
-                    h.onEvent('callbackSrv', 'response', () => {
+                `
+      )
+      .configHandler(h => {
+        h.on('getDataSrv', '-relay-', () => {
+          return peer.getStatus().relayPeerId;
+        });
+        h.on('getDataSrv', 'res', () => {
+          return res;
+        });
+        h.on('getDataSrv', 'reqPeer', () => {
+          return reqPeer;
+        });
+        h.onEvent('callbackSrv', 'response', args => {});
+        h.onEvent('errorHandlingSrv', 'error', args => {
+          const [err] = args;
+          reject(err);
+        });
+      })
+      .handleScriptError(reject)
+      .handleTimeout(() => {
+        reject('Request timed out for onRequestResult');
+      });
 
-                    });
-                    h.onEvent('errorHandlingSrv', 'error', (args) => {
-                        const [err] = args;
-                        reject(err);
-                    });
-                })
-                .handleScriptError(reject)
-                .handleTimeout(() => {
-                    reject('Request timed out for sendGithubRequestResult');
-                })
+    if (config && config.ttl) {
+      r.withTTL(config.ttl);
+    }
 
-                if (config && config.ttl) {
-                    r.withTTL(config.ttl)
-                }
+    request = r.build();
+  });
+  peer.internals.initiateFlow(request!);
+  return Promise.race([promise, Promise.resolve()]);
+}
 
-                request = r.build();
-    });
-    peer.internals.initiateFlow(request!);
-    return Promise.race([promise, Promise.resolve()]);
+export type OnVerifyResultArgRes = {
+  code: number;
+  data: { attestation: string };
+  error: string;
+  requestId: string;
+};
+export type OnVerifyResultArgReqPeer = {
+  hasRelayPeer: boolean;
+  peerId: string;
+  relayPeerId: string;
+};
+
+export function onVerifyResult(
+  res: OnVerifyResultArgRes,
+  reqPeer: OnVerifyResultArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function onVerifyResult(
+  peer: FluencePeer,
+  res: OnVerifyResultArgRes,
+  reqPeer: OnVerifyResultArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function onVerifyResult(...args: any) {
+  let peer: FluencePeer;
+  let res: any;
+  let reqPeer: any;
+  let config: any;
+  if (FluencePeer.isInstance(args[0])) {
+    peer = args[0];
+    res = args[1];
+    reqPeer = args[2];
+    config = args[3];
+  } else {
+    peer = Fluence.getPeer();
+    res = args[0];
+    reqPeer = args[1];
+    config = args[2];
+  }
+
+  let request: RequestFlow;
+  const promise = new Promise<void>((resolve, reject) => {
+    const r = new RequestFlowBuilder()
+      .disableInjections()
+      .withRawScript(
+        `
+                    (xor
+                     (seq
+                      (seq
+                       (seq
+                        (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+                        (call %init_peer_id% ("getDataSrv" "res") [] res)
+                       )
+                       (call %init_peer_id% ("getDataSrv" "reqPeer") [] reqPeer)
+                      )
+                      (xor
+                       (match reqPeer.$.hasRelayPeer! true
+                        (xor
+                         (seq
+                          (seq
+                           (call -relay- ("op" "noop") [])
+                           (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                          )
+                          (xor
+                           (call reqPeer.$.peerId! ("github-requester" "onVerifyResult") [res])
+                           (seq
+                            (seq
+                             (seq
+                              (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                              (call -relay- ("op" "noop") [])
+                             )
+                             (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 1])
+                            )
+                            (call -relay- ("op" "noop") [])
+                           )
+                          )
+                         )
+                         (seq
+                          (seq
+                           (seq
+                            (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                            (call -relay- ("op" "noop") [])
+                           )
+                           (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 2])
+                          )
+                          (call -relay- ("op" "noop") [])
+                         )
+                        )
+                       )
+                       (seq
+                        (xor
+                         (call reqPeer.$.peerId! ("github-requester" "onVerifyResult") [res])
+                         (seq
+                          (seq
+                           (call -relay- ("op" "noop") [])
+                           (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 3])
+                          )
+                          (call -relay- ("op" "noop") [])
+                         )
+                        )
+                        (call -relay- ("op" "noop") [])
+                       )
+                      )
+                     )
+                     (seq
+                      (seq
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                       (call -relay- ("op" "noop") [])
+                      )
+                      (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 4])
+                     )
+                    )
+                `
+      )
+      .configHandler(h => {
+        h.on('getDataSrv', '-relay-', () => {
+          return peer.getStatus().relayPeerId;
+        });
+        h.on('getDataSrv', 'res', () => {
+          return res;
+        });
+        h.on('getDataSrv', 'reqPeer', () => {
+          return reqPeer;
+        });
+        h.onEvent('callbackSrv', 'response', args => {});
+        h.onEvent('errorHandlingSrv', 'error', args => {
+          const [err] = args;
+          reject(err);
+        });
+      })
+      .handleScriptError(reject)
+      .handleTimeout(() => {
+        reject('Request timed out for onVerifyResult');
+      });
+
+    if (config && config.ttl) {
+      r.withTTL(config.ttl);
+    }
+
+    request = r.build();
+  });
+  peer.internals.initiateFlow(request!);
+  return Promise.race([promise, Promise.resolve()]);
 }

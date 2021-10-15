@@ -15,3 +15,10 @@ export type GithubRequestReturn = ReturnType<
 export type GithubVerifyReturn = ReturnType<
   GithubIdentityLinkServiceDef['githubVerify']
 >;
+
+export type Challenge = {
+  challengeCode: string;
+  did: string;
+  username: string;
+  timestamp: number;
+};
