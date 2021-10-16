@@ -11,7 +11,6 @@ export default function register() {
         req,
         requestId,
         reqPeer,
-        callParams,
       };
 
       try {
@@ -32,7 +31,6 @@ export default function register() {
         req,
         requestId,
         reqPeer,
-        callParams,
       };
 
       try {

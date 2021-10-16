@@ -132,3 +132,246 @@ export function registerGithubIdentityLinkService(...args: any) {
 }
 
 // Functions
+export type GithubRequestArgReq = { did: string; username: string };
+export type GithubRequestArgReqPeer = {
+  hasRelayPeer: boolean;
+  peerId: string;
+  relayPeerId: string;
+};
+
+export function githubRequest(
+  req: GithubRequestArgReq,
+  requestId: string,
+  reqPeer: GithubRequestArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function githubRequest(
+  peer: FluencePeer,
+  req: GithubRequestArgReq,
+  requestId: string,
+  reqPeer: GithubRequestArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function githubRequest(...args: any) {
+  let peer: FluencePeer;
+  let req: any;
+  let requestId: any;
+  let reqPeer: any;
+  let config: any;
+  if (FluencePeer.isInstance(args[0])) {
+    peer = args[0];
+    req = args[1];
+    requestId = args[2];
+    reqPeer = args[3];
+    config = args[4];
+  } else {
+    peer = Fluence.getPeer();
+    req = args[0];
+    requestId = args[1];
+    reqPeer = args[2];
+    config = args[3];
+  }
+
+  let request: RequestFlow;
+  const promise = new Promise<void>((resolve, reject) => {
+    const r = new RequestFlowBuilder()
+      .disableInjections()
+      .withRawScript(
+        `
+                    (xor
+                     (seq
+                      (seq
+                       (seq
+                        (seq
+                         (seq
+                          (seq
+                           (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+                           (call %init_peer_id% ("getDataSrv" "req") [] req)
+                          )
+                          (call %init_peer_id% ("getDataSrv" "requestId") [] requestId)
+                         )
+                         (call %init_peer_id% ("getDataSrv" "reqPeer") [] reqPeer)
+                        )
+                        (call -relay- ("op" "noop") [])
+                       )
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                      )
+                      (xor
+                       (call reqPeer.$.peerId! ("github-identity-link-service" "githubRequest") [req requestId reqPeer])
+                       (seq
+                        (seq
+                         (seq
+                          (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                          (call -relay- ("op" "noop") [])
+                         )
+                         (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 1])
+                        )
+                        (call -relay- ("op" "noop") [])
+                       )
+                      )
+                     )
+                     (seq
+                      (seq
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                       (call -relay- ("op" "noop") [])
+                      )
+                      (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 2])
+                     )
+                    )
+                `
+      )
+      .configHandler(h => {
+        h.on('getDataSrv', '-relay-', () => {
+          return peer.getStatus().relayPeerId;
+        });
+        h.on('getDataSrv', 'req', () => {
+          return req;
+        });
+        h.on('getDataSrv', 'requestId', () => {
+          return requestId;
+        });
+        h.on('getDataSrv', 'reqPeer', () => {
+          return reqPeer;
+        });
+        h.onEvent('callbackSrv', 'response', args => {});
+        h.onEvent('errorHandlingSrv', 'error', args => {
+          const [err] = args;
+          reject(err);
+        });
+      })
+      .handleScriptError(reject)
+      .handleTimeout(() => {
+        reject('Request timed out for githubRequest');
+      });
+
+    if (config && config.ttl) {
+      r.withTTL(config.ttl);
+    }
+
+    request = r.build();
+  });
+  peer.internals.initiateFlow(request!);
+  return Promise.race([promise, Promise.resolve()]);
+}
+
+export type GithubVerifyArgReq = { jws: string };
+export type GithubVerifyArgReqPeer = {
+  hasRelayPeer: boolean;
+  peerId: string;
+  relayPeerId: string;
+};
+
+export function githubVerify(
+  req: GithubVerifyArgReq,
+  requestId: string,
+  reqPeer: GithubVerifyArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function githubVerify(
+  peer: FluencePeer,
+  req: GithubVerifyArgReq,
+  requestId: string,
+  reqPeer: GithubVerifyArgReqPeer,
+  config?: { ttl?: number }
+): Promise<void>;
+export function githubVerify(...args: any) {
+  let peer: FluencePeer;
+  let req: any;
+  let requestId: any;
+  let reqPeer: any;
+  let config: any;
+  if (FluencePeer.isInstance(args[0])) {
+    peer = args[0];
+    req = args[1];
+    requestId = args[2];
+    reqPeer = args[3];
+    config = args[4];
+  } else {
+    peer = Fluence.getPeer();
+    req = args[0];
+    requestId = args[1];
+    reqPeer = args[2];
+    config = args[3];
+  }
+
+  let request: RequestFlow;
+  const promise = new Promise<void>((resolve, reject) => {
+    const r = new RequestFlowBuilder()
+      .disableInjections()
+      .withRawScript(
+        `
+                    (xor
+                     (seq
+                      (seq
+                       (seq
+                        (seq
+                         (seq
+                          (seq
+                           (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+                           (call %init_peer_id% ("getDataSrv" "req") [] req)
+                          )
+                          (call %init_peer_id% ("getDataSrv" "requestId") [] requestId)
+                         )
+                         (call %init_peer_id% ("getDataSrv" "reqPeer") [] reqPeer)
+                        )
+                        (call -relay- ("op" "noop") [])
+                       )
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                      )
+                      (xor
+                       (call reqPeer.$.peerId! ("github-identity-link-service" "githubVerify") [req requestId reqPeer])
+                       (seq
+                        (seq
+                         (seq
+                          (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                          (call -relay- ("op" "noop") [])
+                         )
+                         (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 1])
+                        )
+                        (call -relay- ("op" "noop") [])
+                       )
+                      )
+                     )
+                     (seq
+                      (seq
+                       (call reqPeer.$.relayPeerId! ("op" "noop") [])
+                       (call -relay- ("op" "noop") [])
+                      )
+                      (call %init_peer_id% ("errorHandlingSrv" "error") [%last_error% 2])
+                     )
+                    )
+                `
+      )
+      .configHandler(h => {
+        h.on('getDataSrv', '-relay-', () => {
+          return peer.getStatus().relayPeerId;
+        });
+        h.on('getDataSrv', 'req', () => {
+          return req;
+        });
+        h.on('getDataSrv', 'requestId', () => {
+          return requestId;
+        });
+        h.on('getDataSrv', 'reqPeer', () => {
+          return reqPeer;
+        });
+        h.onEvent('callbackSrv', 'response', args => {});
+        h.onEvent('errorHandlingSrv', 'error', args => {
+          const [err] = args;
+          reject(err);
+        });
+      })
+      .handleScriptError(reject)
+      .handleTimeout(() => {
+        reject('Request timed out for githubVerify');
+      });
+
+    if (config && config.ttl) {
+      r.withTTL(config.ttl);
+    }
+
+    request = r.build();
+  });
+  peer.internals.initiateFlow(request!);
+  return Promise.race([promise, Promise.resolve()]);
+}

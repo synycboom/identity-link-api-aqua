@@ -3,7 +3,6 @@ import { GithubRequestParams, Challenge } from '@/github/type';
 import { onRequestResult } from '@/_aqua/github-requester';
 import * as cache from '@/cache';
 import logger from '@/logger';
-import { isErrorObject } from '@/type';
 import { challengeKey } from '@/github/util';
 
 const validationError = (requestId: string, message: string) => ({
@@ -35,7 +34,7 @@ export default async function sendChallenge(
 ) {
   logger.info('[sendChallenge]: prepare sending a challenge', {
     req,
-    callParams,
+    requestId,
   });
 
   const challengeCode = randomString(32);
@@ -73,4 +72,9 @@ export default async function sendChallenge(
   }
 
   await onRequestResult(success(requestId, challengeCode), reqPeer);
+
+  logger.info('[sendChallenge]: done sending a challenge', {
+    req,
+    requestId,
+  });
 }

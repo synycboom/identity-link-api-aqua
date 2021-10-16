@@ -1,12 +1,12 @@
 import { request } from '@octokit/request';
-import fetch from 'node-fetch';
 import { Challenge, GithubVerifyParams } from '@/github/type';
 import { onVerifyResult } from '@/_aqua/github-requester';
 import * as settings from '@/setting';
 import * as cache from '@/cache';
 import logger from '@/logger';
 import { challengeKey } from '@/github/util';
-import { verifyJWS } from '@/github/claim';
+import { verifyJWS, issue } from '@/claim';
+import got from 'got';
 
 const token = settings.GITHUB_PERSONAL_ACCESS_TOKEN;
 if (!token) {
@@ -54,10 +54,8 @@ export default async function verifyAndSendResult(
   callParams: GithubVerifyParams[3]
 ) {
   let meta: Record<string, any> = {
-    req,
     requestId,
     reqPeer,
-    callParams,
   };
 
   logger.info('[sendSignedJWT]: prepare sending a signed JWT', meta);
@@ -69,7 +67,24 @@ export default async function verifyAndSendResult(
     );
   }
 
-  const { payload, did } = await verifyJWS(req.jws);
+  let did = '';
+  let payload: Record<string, any> | undefined;
+  try {
+    const res = await verifyJWS(req.jws);
+    did = res.did;
+    payload = res.payload;
+  } catch (err) {
+    logger.debug(`[sendSignedJWT]: cannot verify JWS`, {
+      ...meta,
+      err,
+    });
+
+    return await onVerifyResult(
+      permissionError(requestId, `"jws" is invalid`),
+      reqPeer
+    );
+  }
+
   if (!payload) {
     return await onVerifyResult(
       permissionError(requestId, `"jws" is invalid`),
@@ -85,7 +100,7 @@ export default async function verifyAndSendResult(
     );
   }
 
-  meta = { ...meta, ...payload };
+  logger.debug(`[sendSignedJWT]: got JWS payload`, { ...meta, ...payload });
   const details = await cache.get<Challenge>(challengeKey(did));
   if (!details) {
     logger.debug(`[sendSignedJWT]: no database entry`, meta);
@@ -140,26 +155,31 @@ export default async function verifyAndSendResult(
         rawUrl = gists[0].files[fileName].raw_url;
       }
     } catch (err) {
-      logger.debug(`[sendSignedJWT]: cannot find a gist url`, meta);
+      logger.debug(`[sendSignedJWT]: got an error while finding a gist url`, meta);
 
       await onVerifyResult(
-        validationError(requestId, `"gistUrl" is not found`),
+        internalError(requestId, 'Internal Server Error'),
         reqPeer
       );
 
       throw err;
     }
   }
+  if (!rawUrl) {
+      await onVerifyResult(
+        permissionError(requestId, `"gistUrl" is not found`),
+        reqPeer
+      );
+  }
 
   meta = { ...meta, rawUrl };
   logger.debug(`[sendSignedJWT]: got raw url`, meta);
 
-  let verificationUrl;
+  let verificationUrl = '';
   try {
-    const res = await fetch(rawUrl);
-    const text = await res.text();
+    const { body } = await got.get(rawUrl);
 
-    if (text && text.includes(did)) {
+    if (body && body.includes(did)) {
       verificationUrl = rawUrl;
     }
   } catch (err) {
@@ -180,5 +200,28 @@ export default async function verifyAndSendResult(
     );
   }
 
-  // TODO: sign JWT and send back
+  try {
+    const attestation = await issue({
+      did,
+      username,
+      verificationUrl,
+      type: 'Github',
+    });
+
+    await onVerifyResult(
+      success(requestId, attestation),
+      reqPeer
+    );
+  } catch (err) {
+    logger.debug(`[sendSignedJWT]: cannot issue attestation`, meta);
+
+    await onVerifyResult(
+      internalError(requestId, 'Internal Server Error'),
+      reqPeer
+    );
+
+    throw err;
+  }
+
+  logger.info('[sendSignedJWT]: done sending a signed JWT', meta);
 }

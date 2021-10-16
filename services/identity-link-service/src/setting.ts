@@ -14,7 +14,15 @@ const requireEnv = (name: string): string => {
   return env;
 };
 
-export const PRIVATE_KEY = requireEnv('PRIVATE_KEY');
+// export const CERAMIC_CLIENT_URL = requireEnv('CERAMIC_CLIENT_URL');
+
+export const VERIFICATION_ISSUER_DOMAIN = requireEnv(
+  'VERIFICATION_ISSUER_DOMAIN'
+);
+
+export const ES256K_PRIVATE_KEY = requireEnv('ES256K_PRIVATE_KEY');
+
+export const ES256K_PUBLIC_KEY = requireEnv('ES256K_PUBLIC_KEY');
 
 export const GRACEFUL_SHUTDOWN_IN_SECONDS = strToNumber(
   requireEnv('GRACEFUL_SHUTDOWN_IN_SECONDS')
