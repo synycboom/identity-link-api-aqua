@@ -7,8 +7,8 @@ import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
 import * as settings from '@/setting';
 import { Issue } from '@/claim/type';
 
-const privateKey = settings.ES256K_PRIVATE_KEY;
-const publicKey = settings.ES256K_PUBLIC_KEY;
+const privateKey = settings.ES256K_PRIVATE_KEY_HEX;
+const publicKey = settings.ES256K_PUBLIC_KEY_HEX;
 const issuerDomain = settings.VERIFICATION_ISSUER_DOMAIN;
 // const ceramic = new CeramicClient(settings.CERAMIC_CLIENT_URL);
 const resolver = {

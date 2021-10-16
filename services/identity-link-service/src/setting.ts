@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import logger from '@/logger';
 
 const strToNumber = (value: string): number => {
@@ -20,9 +22,20 @@ export const VERIFICATION_ISSUER_DOMAIN = requireEnv(
   'VERIFICATION_ISSUER_DOMAIN'
 );
 
-export const ES256K_PRIVATE_KEY = requireEnv('ES256K_PRIVATE_KEY');
+export const ES256K_PRIVATE_KEY_HEX = fs.readFileSync(
+  path.join(__dirname, '../keys/secp256k1-private.hex'),
+  { encoding: 'ascii' }
+);
 
-export const ES256K_PUBLIC_KEY = requireEnv('ES256K_PUBLIC_KEY');
+export const ES256K_PUBLIC_KEY_HEX = fs.readFileSync(
+  path.join(__dirname, '../keys/secp256k1-public.hex'),
+  { encoding: 'ascii' }
+);
+
+export const ED25519_PRIVATE_KEY_PEM = fs.readFileSync(
+  path.join(__dirname, '../keys/ed25519-private.pem'),
+  { encoding: 'ascii' }
+);
 
 export const GRACEFUL_SHUTDOWN_IN_SECONDS = strToNumber(
   requireEnv('GRACEFUL_SHUTDOWN_IN_SECONDS')

@@ -1,0 +1,8 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "identity-link-router.aqua"
+
+func updateService(req: ServiceRegistrationRequest, serviceId: string, servicePeerId: PeerId) -> ServiceRegistrationResponse:
+  on servicePeerId:
+    IdentityLinkRouter serviceId
+    res <- IdentityLinkRouter.update_service(req)
+  <- res
