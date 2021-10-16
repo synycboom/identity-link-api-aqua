@@ -1,0 +1,33 @@
+{
+  "services": {
+    "identity-link-router": {
+      "dependencies": [
+        "sqlite3",
+        "identity-link-router"
+      ],
+      "node": "12D3KooWD7CvsYcpF9HE9CCV9aY3SJ317tkXVykjtZnht2EbzDPm"
+    }
+  },
+  "modules": {
+    "identity-link-router": {
+      "file": "./artifacts/identity-link-router.wasm",
+      "config": {
+        "logger_enabled": true,
+        "preopened_files": [
+          "/tmp"
+        ],
+        "mapped_dirs": {
+          "tmp": "/tmp"
+        }
+      }
+    },
+    "sqlite3": {
+      "file": "./artifacts/sqlite3.wasm",
+      "config": {
+        "mem_pages_count": 300
+      }
+    }
+  },
+  "scripts": {},
+  "script_storage": {}
+}
