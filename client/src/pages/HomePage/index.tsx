@@ -1,12 +1,70 @@
 import { Link } from 'react-router-dom';
+import { Typography, List, Button } from 'antd';
+import HomePageStyle from './style';
+import PageLayout from 'src/components/PageLayout';
+import { useRecoilValue } from 'recoil';
+import { accountState } from 'src/state';
+
+const { Title } = Typography;
 
 const HomePage: React.FC = () => {
+  const { connected } = useRecoilValue(accountState);
+
   return (
-    <div>
-      <Link to='/'>3333</Link>
-      <Link to='/test'>111</Link>
-      <Link to='/abc'>2222</Link>
-    </div>
+    <HomePageStyle>
+      <PageLayout>
+        <Title>My social accounts</Title>
+        {connected ? (
+          <List
+            dataSource={[
+              { id: 1, provider: 'Github', link: '', account: 'manotien' },
+              { id: 2, provider: 'Twitter', link: '', account: 'manotien' },
+            ]}
+            renderItem={(item) => (
+              <List.Item key={item.id}>
+                <List.Item.Meta
+                  avatar={<img src={`/${item.provider}.svg`} />}
+                  title={item.provider}
+                  description={
+                    false ? (
+                      <a href={item.link} target='_blank'>
+                        {item.account}
+                      </a>
+                    ) : (
+                      <p>not linked</p>
+                    )
+                  }
+                />
+                <Link to={`/verify/${item.provider.toLowerCase()}`}>
+                  <Button>Link Account</Button>
+                </Link>
+              </List.Item>
+            )}
+          >
+            {/* <List.Item>
+                <List.Item.Meta
+                  avatar={
+                    <Avatar src='https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png' />
+                  }
+                  title='Twitter'
+                  description={
+                    false ? (
+                      <a href={'item.link'} target='_blank'>
+                        {'item.account'}
+                      </a>
+                    ) : (
+                      <p>not link</p>
+                    )
+                  }
+                />
+                <Button type='primary'>Link Account</Button>
+              </List.Item> */}
+          </List>
+        ) : (
+          <>Connect</>
+        )}
+      </PageLayout>
+    </HomePageStyle>
   );
 };
 
