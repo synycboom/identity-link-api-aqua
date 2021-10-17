@@ -1,8 +1,6 @@
 # ------- BUILDER -------
 FROM node:14-alpine AS builder
 
-ENV NODE_ENV=production
-
 WORKDIR /app
 
 COPY . .
@@ -17,8 +15,6 @@ RUN npm i --only=production
 
 # ------- RELEASE -------
 FROM node:14-alpine AS release
-
-ENV NODE_ENV=production
 
 WORKDIR /app
 
