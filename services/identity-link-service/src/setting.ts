@@ -56,3 +56,9 @@ export const REDIS_CACHE_TTL_IN_MINUTES = strToNumber(
 export const GITHUB_PERSONAL_ACCESS_TOKEN = requireEnv(
   'GITHUB_PERSONAL_ACCESS_TOKEN'
 );
+
+export const TWITTER_CONSUMER_KEY = requireEnv('TWITTER_CONSUMER_KEY');
+
+export const TWITTER_CONSUMER_SECRET = requireEnv('TWITTER_CONSUMER_KEY');
+
+export const TWITTER_BEARER_TOKEN = requireEnv('TWITTER_BEARER_TOKEN');

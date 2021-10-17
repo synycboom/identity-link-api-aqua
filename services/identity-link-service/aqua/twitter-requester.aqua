@@ -1,0 +1,40 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
+
+data TwitterChallenge:
+  challengeCode: string
+
+data TwitterRequestResult:
+  code: u32
+  data: TwitterChallenge
+  error: string
+  requestId: string
+
+data TwitterIdentity:
+  attestation: string
+
+data TwitterVerifyResult:
+  code: u32
+  data: TwitterIdentity
+  error: string
+  requestId: string
+
+service TwitterRequester("twitter-requester"):
+  onRequestResult(res: TwitterRequestResult)
+  onVerifyResult(res: TwitterVerifyResult)
+
+func onRequestResult(res: TwitterRequestResult, reqPeer: RequesterPeer):
+  if reqPeer.hasRelayPeer:
+    on reqPeer.peerId via reqPeer.relayPeerId:
+      TwitterRequester.onRequestResult(res)
+  else:
+    on reqPeer.peerId:
+      TwitterRequester.onRequestResult(res)
+
+func onVerifyResult(res: TwitterVerifyResult, reqPeer: RequesterPeer):
+  if reqPeer.hasRelayPeer:
+    on reqPeer.peerId via reqPeer.relayPeerId:
+      TwitterRequester.onVerifyResult(res)
+  else:
+    on reqPeer.peerId:
+      TwitterRequester.onVerifyResult(res)

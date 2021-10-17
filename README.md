@@ -31,14 +31,9 @@ $ ./deploy.sh
 - the identity-link-router needs to be deployed first to make the identity-link-service fully functions
 - create identity-link-service/.env file (use .env.example as a reference) 
 - fill other variables in identity-link-service/.env
-
-For the first time, run commands below
 ```
 $ cd identity-link-service
 $ npm ci
-$ npm run build:dev
-```
-After the first build
-```
 $ npm run start
 ```
+if the `npm run start` fails, try running it again.
