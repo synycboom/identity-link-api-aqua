@@ -1,5 +1,4 @@
 import { Switch, Route, BrowserRouter } from 'react-router-dom';
-import { RecoilRoot } from 'recoil';
 import HomePage from 'src/pages/HomePage';
 import VerifyPage from 'src/pages/VerifyPage';
 import { useEffect, useState } from 'react';
@@ -9,18 +8,45 @@ import { registerGithubRequester } from 'src/_aqua/github-requester';
 
 import 'antd/dist/antd.css';
 import './App.css';
+import { message } from 'antd';
+import { useRecoilState } from 'recoil';
+import { requestState } from 'src/state';
 
 const App: React.FC = () => {
   const [connect, setConnect] = useState(false);
+  const [requests, setRequests] = useRecoilState(requestState);
   const main = async () => {
     await Fluence.start({ connectTo: krasnodar[0] });
 
     registerGithubRequester({
-      onRequestResult(res) {
-        console.log(res);
+      onRequestResult({ code, error, requestId, data }) {
+        console.log({ code, error, requestId, data });
+        if (code !== 200) {
+          message.error(error);
+          return;
+        }
+        setRequests([
+          ...requests,
+          {
+            id: requestId,
+            data,
+          },
+        ]);
       },
-      onVerifyResult(res) {
-        console.log(res);
+      onVerifyResult({ code, error, requestId, data }) {
+        console.log({ code, error, requestId, data });
+
+        if (code !== 200) {
+          message.error(error);
+          return;
+        }
+        setRequests([
+          ...requests,
+          {
+            id: requestId,
+            data,
+          },
+        ]);
       },
     });
     setConnect(true);
@@ -34,12 +60,10 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <RecoilRoot>
-        <Switch>
-          <Route path='/verify/:provider' component={VerifyPage} />
-          <Route path='/' component={HomePage} />
-        </Switch>
-      </RecoilRoot>
+      <Switch>
+        <Route path='/verify/:provider' component={VerifyPage} />
+        <Route path='/' component={HomePage} />
+      </Switch>
     </BrowserRouter>
   );
 };

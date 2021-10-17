@@ -4,16 +4,27 @@ import VerifyPageStyle from './style';
 import { fromDagJWS } from 'dids/lib/utils';
 import PageLayout from 'src/components/PageLayout';
 import { useEffect, useState } from 'react';
-import { useRecoilValue } from 'recoil';
-import { accountState } from 'src/state';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { accountState, requestState } from 'src/state';
 import { copyTextToClipboard } from 'src/helpers';
-
-import { request, verify } from 'src/_aqua/github';
+import {
+  request as requestGithub,
+  verify as verifyGithub,
+} from 'src/_aqua/github';
+import { requestTwitter, verifyTwitter } from 'src/_aqua/twitter';
 import config from 'src/identity-link-router.json';
 import { Fluence } from '@fluencelabs/fluence';
+import setting from 'src/setting';
+import { v4 as uuidv4 } from 'uuid';
 
 const { Title } = Typography;
 const { Step } = Steps;
+
+const DEFAULT_DATA = {
+  requestId: '',
+  verifyId: '',
+  challengeCode: '',
+};
 
 const VerifyPage: React.FC = () => {
   const { provider }: { provider: 'github' | 'twitter' } = useParams();
@@ -21,16 +32,26 @@ const VerifyPage: React.FC = () => {
   const [step, setStep] = useState(0);
   const [username, setUsername] = useState('');
   const [loadingIndex, setLoadingIndex] = useState(-1);
+  const [data, setData] = useState(DEFAULT_DATA);
   const { connected, did } = useRecoilValue(accountState);
+  const [requests, setRequests] = useRecoilState(requestState);
 
-  const requestGithub = async () => {
+  const clear = () => {
+    setData(DEFAULT_DATA);
+    setRequests([]);
+  };
+
+  const startRequest = async (
+    identityLinkServiceId: string,
+    requestFn: any
+  ) => {
     const { node: routerPeerId, id: routerServiceId } =
       config.services['identity-link-router'];
 
     const router = {
       routerPeerId,
       routerServiceId,
-      identityLinkSerivceId: 'github-identity-link-service',
+      identityLinkServiceId,
     };
     const { peerId, relayPeerId } = Fluence.getStatus();
     const reqPeer = {
@@ -38,23 +59,37 @@ const VerifyPage: React.FC = () => {
       relayPeerId: relayPeerId!,
       hasRelayPeer: true,
     };
+    const requestId = uuidv4();
+    setData({
+      ...DEFAULT_DATA,
+      requestId,
+    });
     const payload = {
       req: { did: did!.id, username },
-      requestId: 'testabc',
+      requestId,
       reqPeer,
     };
-    const response = await request(router, payload);
-    console.log(response);
+    await requestFn(router, payload);
   };
 
-  const verifyGithub = async () => {
+  const requestCallback = (challengeCode: string) => {
+    setData({
+      ...data,
+      challengeCode,
+    });
+    copyTextToClipboard(did!.id);
+    setLoadingIndex(-1);
+    message.success('Copied to clipboard!');
+  };
+
+  const startVerify = async (identityLinkServiceId: string, verifyFn: any) => {
     const { node: routerPeerId, id: routerServiceId } =
       config.services['identity-link-router'];
 
     const router = {
       routerPeerId,
       routerServiceId,
-      identityLinkSerivceId: 'github-identity-link-service',
+      identityLinkServiceId,
     };
     const { peerId, relayPeerId } = Fluence.getStatus();
     const reqPeer = {
@@ -63,17 +98,45 @@ const VerifyPage: React.FC = () => {
       hasRelayPeer: true,
     };
     const jws = await did!.createJWS({
-      challengeCode: 'BJszd65UQy8wWcFJdlfzQjQDYRK074oS',
+      challengeCode: data.challengeCode,
     });
-
+    const requestId = uuidv4();
+    setData({
+      ...data,
+      verifyId: requestId,
+    });
     const payload = {
       req: { jws: fromDagJWS(jws) },
-      requestId: 'testabc',
+      requestId,
       reqPeer,
     };
-    const response = await verify(router, payload);
-    console.log(response);
+    await verifyFn(router, payload);
   };
+
+  const verifyCallback = (attestation: string) => {
+    console.log(attestation);
+    setLoadingIndex(-1);
+    clear();
+    message.success('Verify succuess!', 2, () => history.push('/'));
+  };
+
+  useEffect(() => {
+    // request flow
+    const requestData = requests.find(
+      (_request) => _request.id === data.requestId
+    );
+    if (requestData) {
+      requestCallback(requestData.data.challengeCode);
+    }
+
+    // verify flow
+    const verifyData = requests.find(
+      (_request) => _request.id === data.verifyId
+    );
+    if (verifyData) {
+      verifyCallback(verifyData.data.attestation);
+    }
+  }, [requests]);
 
   const SOCIAL_VERIFY_STEPS = {
     github: [
@@ -82,12 +145,11 @@ const VerifyPage: React.FC = () => {
         button: 'Copy',
         action: async () => {
           setLoadingIndex(0);
-          const hide = message.loading('Loading challenge...', 0);
-          await requestGithub();
-          hide();
-          copyTextToClipboard(did!.id);
-          setLoadingIndex(-1);
-          message.success('Copied to clipboard!');
+          await startRequest(
+            setting.REACT_APP_GITHUB_SERVICE_ID,
+            requestGithub
+          );
+          message.loading('Loading challenge...', 1);
         },
       },
       {
@@ -111,13 +173,8 @@ const VerifyPage: React.FC = () => {
         button: 'Verify',
         action: async () => {
           setLoadingIndex(3);
-          const hide = message.loading('Verify...', 0);
-          await verifyGithub();
-          setTimeout(() => {
-            hide();
-            setLoadingIndex(-1);
-            message.success('Verify succuess!', 2, () => history.push('/'));
-          }, 2000);
+          await startVerify(setting.REACT_APP_GITHUB_SERVICE_ID, verifyGithub);
+          message.loading('Verify...', 2);
         },
       },
     ],
@@ -127,21 +184,20 @@ const VerifyPage: React.FC = () => {
         button: 'Copy',
         action: async () => {
           setLoadingIndex(0);
-          const hide = message.loading('Loading challenge...', 0);
-          setTimeout(() => {
-            hide();
-            setLoadingIndex(-1);
-            message.success('Copied to clipboard!');
-          }, 2000);
+          await startRequest(
+            setting.REACT_APP_GITHUB_SERVICE_ID,
+            requestTwitter
+          );
+          message.loading('Loading challenge...', 1);
         },
       },
       {
-        message: `Tweet a verification from @${'username'}`,
+        message: `Tweet a verification from @${username}`,
         button: 'Tweet',
         action: async () => {
           if (window) {
             window.open(
-              `https://twitter.com/intent/tweet?text=${'did:dsad'}`,
+              `https://twitter.com/intent/tweet?text=${did!.id}`,
               '_blank'
             );
           }
@@ -153,15 +209,11 @@ const VerifyPage: React.FC = () => {
         button: 'Verify',
         action: async () => {
           setLoadingIndex(2);
-          const hide = message.loading('Verify...', 0);
-          setTimeout(() => {
-            hide();
-            setLoadingIndex(-1);
-            message.success('Verify succuess!');
-            setTimeout(() => {
-              history.push('/');
-            }, 2000);
-          }, 2000);
+          await startVerify(
+            setting.REACT_APP_TWITTER_SERVICE_ID,
+            verifyTwitter
+          );
+          message.loading('Verify...', 2);
         },
       },
     ],
@@ -170,8 +222,6 @@ const VerifyPage: React.FC = () => {
   const nextStep = (index: number) => {
     setStep(index + 1);
   };
-
-  useEffect(() => {}, []);
 
   return (
     <VerifyPageStyle>
@@ -219,17 +269,9 @@ const VerifyPage: React.FC = () => {
                         <Button
                           danger
                           loading={index === loadingIndex}
-                          // disabled={step !== index}
-                          onClick={() => {
-                            stepItem
-                              .action()
-                              .then(() => {
-                                // setLoadingIndex(-1);
-                                nextStep(index + 1);
-                              })
-                              .catch(() => {
-                                message.error('something went wrong');
-                              });
+                          onClick={async () => {
+                            await stepItem.action();
+                            nextStep(index + 1);
                           }}
                         >
                           {stepItem.button}

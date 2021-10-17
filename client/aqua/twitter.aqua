@@ -1,6 +1,7 @@
+
 import "@fluencelabs/aqua-lib/builtin.aqua"
 import "identity-link-router.aqua"
-import "github-identity-link-service.aqua"
+import "twitter-identity-link-service.aqua"
 import "requester.aqua"
 
 data Router:
@@ -8,17 +9,17 @@ data Router:
   routerServiceId: string
   identityLinkServiceId: string
 
-data GitHubRequestPayload:
-  req: GithubRequest
+data TwitterRequestPayload:
+  req: TwitterRequest
   requestId: string
   reqPeer: RequesterPeer
 
-data GithubVerifyPayload:
-  req: GithubVerify
+data TwitterVerifyPayload:
+  req: TwitterVerify
   requestId: string
   reqPeer: RequesterPeer
 
-func request(router: Router, payload: GitHubRequestPayload) -> string:
+func requestTwitter(router: Router, payload: TwitterRequestPayload) -> string:
   on router.routerPeerId:
     IdentityLinkRouter router.routerServiceId
     s <- IdentityLinkRouter.get_service(router.identityLinkServiceId)
@@ -26,11 +27,11 @@ func request(router: Router, payload: GitHubRequestPayload) -> string:
     <- s.error
   
   on s.routing.peer_id via s.routing.relay_peer_id:
-    GithubIdentityLinkService s.routing.service_id
-    GithubIdentityLinkService.githubRequest(payload.req, payload.requestId, payload.reqPeer)
+    TwitterIdentityLinkService s.routing.service_id
+    TwitterIdentityLinkService.twitterRequest(payload.req, payload.requestId, payload.reqPeer)
   <- ""
 
-func verify(router: Router, payload: GithubVerifyPayload) -> string:
+func verifyTwitter(router: Router, payload: TwitterVerifyPayload) -> string:
   on router.routerPeerId:
     IdentityLinkRouter router.routerServiceId
     s <- IdentityLinkRouter.get_service(router.identityLinkServiceId)
@@ -38,6 +39,6 @@ func verify(router: Router, payload: GithubVerifyPayload) -> string:
     <- s.error
   
   on s.routing.peer_id via s.routing.relay_peer_id:
-    GithubIdentityLinkService s.routing.service_id
-    GithubIdentityLinkService.githubVerify(payload.req, payload.requestId, payload.reqPeer)
+    TwitterIdentityLinkService s.routing.service_id
+    TwitterIdentityLinkService.twitterVerify(payload.req, payload.requestId, payload.reqPeer)
   <- ""

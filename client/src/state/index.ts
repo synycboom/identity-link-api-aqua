@@ -1,5 +1,5 @@
 import { DID } from 'dids';
-import { atom } from 'recoil';
+import { atom, RecoilState } from 'recoil';
 
 export interface IAccountState {
   connected: boolean;
@@ -16,4 +16,14 @@ export const defaultAccountState: IAccountState = {
 export const accountState = atom({
   key: 'accountState',
   default: defaultAccountState,
+});
+
+export type IRequestState = Array<{
+  id: string;
+  data: any;
+}>;
+const defaultRequestState: IRequestState = [];
+export const requestState: RecoilState<IRequestState> = atom({
+  key: 'requestState',
+  default: defaultRequestState,
 });

@@ -1,0 +1,13 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
+
+data TwitterRequest:
+  did: string
+  username: string
+
+data TwitterVerify:
+  jws: string
+
+service TwitterIdentityLinkService("twitter-identity-link-service"):
+  twitterRequest(req: TwitterRequest, requestId: string, reqPeer: RequesterPeer)
+  twitterVerify(req: TwitterVerify, requestId: string, reqPeer: RequesterPeer)

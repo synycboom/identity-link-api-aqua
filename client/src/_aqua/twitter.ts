@@ -22,12 +22,12 @@ function missingFields(obj: any, fields: string[]): string[] {
 // Services
 
 // Functions
-export type RequestArgRouter = { identityLinkServiceId: string; routerPeerId: string; routerServiceId: string; }
-export type RequestArgPayload = { req: { did: string; username: string; }; reqPeer: { hasRelayPeer: boolean; peerId: string; relayPeerId: string; }; requestId: string; } 
+export type RequestTwitterArgRouter = { identityLinkServiceId: string; routerPeerId: string; routerServiceId: string; }
+export type RequestTwitterArgPayload = { req: { did: string; username: string; }; reqPeer: { hasRelayPeer: boolean; peerId: string; relayPeerId: string; }; requestId: string; } 
 
-export function request(router: RequestArgRouter, payload: RequestArgPayload, config?: {ttl?: number}): Promise<string>;
-export function request(peer: FluencePeer, router: RequestArgRouter, payload: RequestArgPayload, config?: {ttl?: number}): Promise<string>;
-export function request(...args: any) {
+export function requestTwitter(router: RequestTwitterArgRouter, payload: RequestTwitterArgPayload, config?: {ttl?: number}): Promise<string>;
+export function requestTwitter(peer: FluencePeer, router: RequestTwitterArgRouter, payload: RequestTwitterArgPayload, config?: {ttl?: number}): Promise<string>;
+export function requestTwitter(...args: any) {
     let peer: FluencePeer;
     let router: any;
     let payload: any;
@@ -85,7 +85,7 @@ export function request(...args: any) {
                          (xor
                           (seq
                            (call s.$.routing.relay_peer_id! ("op" "noop") [])
-                           (call s.$.routing.peer_id! (s.$.routing.service_id! "githubRequest") [payload.$.req! payload.$.requestId! payload.$.reqPeer!])
+                           (call s.$.routing.peer_id! (s.$.routing.service_id! "twitterRequest") [payload.$.req! payload.$.requestId! payload.$.reqPeer!])
                           )
                           (seq
                            (seq
@@ -129,7 +129,7 @@ export function request(...args: any) {
                 })
                 .handleScriptError(reject)
                 .handleTimeout(() => {
-                    reject('Request timed out for request');
+                    reject('Request timed out for requestTwitter');
                 })
 
                 if (config && config.ttl) {
@@ -142,12 +142,12 @@ export function request(...args: any) {
     return promise;
 }
 
-export type VerifyArgRouter = { identityLinkServiceId: string; routerPeerId: string; routerServiceId: string; }
-export type VerifyArgPayload = { req: { jws: string; }; reqPeer: { hasRelayPeer: boolean; peerId: string; relayPeerId: string; }; requestId: string; } 
+export type VerifyTwitterArgRouter = { identityLinkServiceId: string; routerPeerId: string; routerServiceId: string; }
+export type VerifyTwitterArgPayload = { req: { jws: string; }; reqPeer: { hasRelayPeer: boolean; peerId: string; relayPeerId: string; }; requestId: string; } 
 
-export function verify(router: VerifyArgRouter, payload: VerifyArgPayload, config?: {ttl?: number}): Promise<string>;
-export function verify(peer: FluencePeer, router: VerifyArgRouter, payload: VerifyArgPayload, config?: {ttl?: number}): Promise<string>;
-export function verify(...args: any) {
+export function verifyTwitter(router: VerifyTwitterArgRouter, payload: VerifyTwitterArgPayload, config?: {ttl?: number}): Promise<string>;
+export function verifyTwitter(peer: FluencePeer, router: VerifyTwitterArgRouter, payload: VerifyTwitterArgPayload, config?: {ttl?: number}): Promise<string>;
+export function verifyTwitter(...args: any) {
     let peer: FluencePeer;
     let router: any;
     let payload: any;
@@ -205,7 +205,7 @@ export function verify(...args: any) {
                          (xor
                           (seq
                            (call s.$.routing.relay_peer_id! ("op" "noop") [])
-                           (call s.$.routing.peer_id! (s.$.routing.service_id! "githubVerify") [payload.$.req! payload.$.requestId! payload.$.reqPeer!])
+                           (call s.$.routing.peer_id! (s.$.routing.service_id! "twitterVerify") [payload.$.req! payload.$.requestId! payload.$.reqPeer!])
                           )
                           (seq
                            (seq
@@ -249,7 +249,7 @@ export function verify(...args: any) {
                 })
                 .handleScriptError(reject)
                 .handleTimeout(() => {
-                    reject('Request timed out for verify');
+                    reject('Request timed out for verifyTwitter');
                 })
 
                 if (config && config.ttl) {
