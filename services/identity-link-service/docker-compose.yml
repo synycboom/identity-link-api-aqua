@@ -6,6 +6,8 @@ services:
     restart: "on-failure"
     env_file:
       - .env
+    volumes:
+      - ./keys:/app/keys
   redis:
     container_name: identity-link-redis
     image: "redis:alpine"
