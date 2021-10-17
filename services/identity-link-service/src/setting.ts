@@ -16,6 +16,10 @@ const requireEnv = (name: string): string => {
   return env;
 };
 
+const optionalEnv = (name: string): string => {
+  return process.env[name] || '';
+};
+
 export const CERAMIC_CLIENT_URL = requireEnv('CERAMIC_CLIENT_URL');
 
 export const VERIFICATION_ISSUER_DOMAIN = requireEnv(
@@ -43,9 +47,9 @@ export const GRACEFUL_SHUTDOWN_IN_SECONDS = strToNumber(
 
 export const APP_PORT = strToNumber(requireEnv('APP_PORT'));
 
-export const REDIS_USERNAME = requireEnv('REDIS_USERNAME');
+export const REDIS_USERNAME = optionalEnv('REDIS_USERNAME');
 
-export const REDIS_PASSWORD = requireEnv('REDIS_PASSWORD');
+export const REDIS_PASSWORD = optionalEnv('REDIS_PASSWORD');
 
 export const REDIS_HOST = requireEnv('REDIS_HOST');
 

@@ -1,6 +1,5 @@
 import * as settings from '@/setting';
 import { createClient } from 'redis';
-import { isErrorObject } from '@/type';
 import logger from '@/logger';
 
 const url = `redis://${settings.REDIS_USERNAME}:${settings.REDIS_PASSWORD}@${settings.REDIS_HOST}`;
@@ -10,15 +9,7 @@ const client = createClient({
 });
 
 export const initializeCache = async () => {
-  try {
-    await client.connect();
-  } catch (err) {
-    if (isErrorObject(err)) {
-      logger.error('[initializeCache]: cannot connect to Redis', {
-        error: err.message,
-      });
-    }
-  }
+  await client.connect();
 
   logger.info('[initializeCache]: connected to Redis');
 };
