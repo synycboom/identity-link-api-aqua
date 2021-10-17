@@ -32,7 +32,10 @@ module.exports = {
     'linebreak-style': 'off',
     'import/no-extraneous-dependencies': 'off',
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
+    'react-hooks/exhaustive-deps': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
+  ignorePatterns: ['src/_aqua/*.ts'],
 };

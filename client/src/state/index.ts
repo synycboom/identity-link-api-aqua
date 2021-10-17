@@ -1,15 +1,16 @@
+import { DID } from 'dids';
 import { atom } from 'recoil';
 
 export interface IAccountState {
   connected: boolean;
   address: string;
-  did: any;
+  did?: DID;
 }
 
 export const defaultAccountState: IAccountState = {
   connected: false,
   address: '',
-  did: null,
+  did: undefined,
 };
 
 export const accountState = atom({

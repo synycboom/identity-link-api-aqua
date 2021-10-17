@@ -1,0 +1,43 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "identity-link-router.aqua"
+import "github-identity-link-service.aqua"
+import "requester.aqua"
+
+data Router:
+  routerPeerId: PeerId
+  routerServiceId: string
+  identityLinkSerivceId: string
+
+data GitHubRequestPayload:
+  req: GithubRequest
+  requestId: string
+  reqPeer: RequesterPeer
+
+data GithubVerifyPayload:
+  req: GithubVerify
+  requestId: string
+  reqPeer: RequesterPeer
+
+func request(router: Router, payload: GitHubRequestPayload) -> string:
+  on router.routerPeerId:
+    IdentityLinkRouter router.routerServiceId
+    s <- IdentityLinkRouter.get_service(router.identityLinkSerivceId)
+  if s.code != 200:
+    <- s.error
+  
+  on s.routing.peer_id via s.routing.relay_peer_id:
+    GithubIdentityLinkService s.routing.service_id
+    GithubIdentityLinkService.githubRequest(payload.req, payload.requestId, payload.reqPeer)
+  <- ""
+
+func verify(router: Router, payload: GithubVerifyPayload) -> string:
+  on router.routerPeerId:
+    IdentityLinkRouter router.routerServiceId
+    s <- IdentityLinkRouter.get_service(router.identityLinkSerivceId)
+  if s.code != 200:
+    <- s.error
+  
+  on s.routing.peer_id via s.routing.relay_peer_id:
+    GithubIdentityLinkService s.routing.service_id
+    GithubIdentityLinkService.githubVerify(payload.req, payload.requestId, payload.reqPeer)
+  <- ""

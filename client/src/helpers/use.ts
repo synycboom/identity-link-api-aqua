@@ -18,7 +18,7 @@ export const useAccount = (): [
       setAccount({
         connected: false,
         address: '',
-        did: null,
+        did: undefined,
       });
 
       // check is connect to wallet

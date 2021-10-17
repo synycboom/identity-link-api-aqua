@@ -1,0 +1,21 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
+
+data GithubRequest:
+  did: string
+  username: string
+
+data GithubVerify:
+  jws: string
+
+service GithubIdentityLinkService("github-identity-link-service"):
+  githubRequest(req: GithubRequest, requestId: string, reqPeer: RequesterPeer)
+  githubVerify(req: GithubVerify, requestId: string, reqPeer: RequesterPeer)
+
+func githubRequest(req: GithubRequest, requestId: string, reqPeer: RequesterPeer):
+    on reqPeer.peerId via reqPeer.relayPeerId:
+        GithubIdentityLinkService.githubRequest(req, requestId, reqPeer)
+
+func githubVerify(req: GithubVerify, requestId: string, reqPeer: RequesterPeer):
+    on reqPeer.peerId via reqPeer.relayPeerId:
+        GithubIdentityLinkService.githubVerify(req, requestId, reqPeer)

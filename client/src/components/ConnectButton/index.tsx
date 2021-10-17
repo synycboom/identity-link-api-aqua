@@ -47,7 +47,7 @@ const ConnectButton: React.FC = () => {
       {isConnecting
         ? 'Connecting ...'
         : account.connected
-        ? formatDid(account.did.id)
+        ? formatDid(account.did!.id)
         : 'Connect to Wallet'}
     </Button>
   );

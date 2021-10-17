@@ -40,28 +40,9 @@ const HomePage: React.FC = () => {
                 </Link>
               </List.Item>
             )}
-          >
-            {/* <List.Item>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar src='https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png' />
-                  }
-                  title='Twitter'
-                  description={
-                    false ? (
-                      <a href={'item.link'} target='_blank'>
-                        {'item.account'}
-                      </a>
-                    ) : (
-                      <p>not link</p>
-                    )
-                  }
-                />
-                <Button type='primary'>Link Account</Button>
-              </List.Item> */}
-          </List>
+          />
         ) : (
-          <>Connect</>
+          <>Please connect to wallet</>
         )}
       </PageLayout>
     </HomePageStyle>

@@ -1,11 +1,16 @@
 import { useHistory, useParams } from 'react-router-dom';
 import { Typography, message, Button, Steps, Input, Space } from 'antd';
 import VerifyPageStyle from './style';
+import { fromDagJWS } from 'dids/lib/utils';
 import PageLayout from 'src/components/PageLayout';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { accountState } from 'src/state';
 import { copyTextToClipboard } from 'src/helpers';
+
+import { request, verify } from 'src/_aqua/github';
+import config from 'src/identity-link-router.json';
+import { Fluence } from '@fluencelabs/fluence';
 
 const { Title } = Typography;
 const { Step } = Steps;
@@ -18,6 +23,58 @@ const VerifyPage: React.FC = () => {
   const [loadingIndex, setLoadingIndex] = useState(-1);
   const { connected, did } = useRecoilValue(accountState);
 
+  const requestGithub = async () => {
+    const { node: routerPeerId, id: routerServiceId } =
+      config.services['identity-link-router'];
+
+    const router = {
+      routerPeerId,
+      routerServiceId,
+      identityLinkSerivceId: 'github-identity-link-service',
+    };
+    const { peerId, relayPeerId } = Fluence.getStatus();
+    const reqPeer = {
+      peerId: peerId!,
+      relayPeerId: relayPeerId!,
+      hasRelayPeer: true,
+    };
+    const payload = {
+      req: { did: did!.id, username },
+      requestId: 'testabc',
+      reqPeer,
+    };
+    const response = await request(router, payload);
+    console.log(response);
+  };
+
+  const verifyGithub = async () => {
+    const { node: routerPeerId, id: routerServiceId } =
+      config.services['identity-link-router'];
+
+    const router = {
+      routerPeerId,
+      routerServiceId,
+      identityLinkSerivceId: 'github-identity-link-service',
+    };
+    const { peerId, relayPeerId } = Fluence.getStatus();
+    const reqPeer = {
+      peerId: peerId!,
+      relayPeerId: relayPeerId!,
+      hasRelayPeer: true,
+    };
+    const jws = await did!.createJWS({
+      challengeCode: 'BJszd65UQy8wWcFJdlfzQjQDYRK074oS',
+    });
+
+    const payload = {
+      req: { jws: fromDagJWS(jws) },
+      requestId: 'testabc',
+      reqPeer,
+    };
+    const response = await verify(router, payload);
+    console.log(response);
+  };
+
   const SOCIAL_VERIFY_STEPS = {
     github: [
       {
@@ -26,12 +83,11 @@ const VerifyPage: React.FC = () => {
         action: async () => {
           setLoadingIndex(0);
           const hide = message.loading('Loading challenge...', 0);
-          setTimeout(() => {
-            hide();
-            copyTextToClipboard(did.id);
-            setLoadingIndex(-1);
-            message.success('Copied to clipboard!');
-          }, 2000);
+          await requestGithub();
+          hide();
+          copyTextToClipboard(did!.id);
+          setLoadingIndex(-1);
+          message.success('Copied to clipboard!');
         },
       },
       {
@@ -56,6 +112,7 @@ const VerifyPage: React.FC = () => {
         action: async () => {
           setLoadingIndex(3);
           const hide = message.loading('Verify...', 0);
+          await verifyGithub();
           setTimeout(() => {
             hide();
             setLoadingIndex(-1);
@@ -113,6 +170,8 @@ const VerifyPage: React.FC = () => {
   const nextStep = (index: number) => {
     setStep(index + 1);
   };
+
+  useEffect(() => {}, []);
 
   return (
     <VerifyPageStyle>

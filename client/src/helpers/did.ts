@@ -20,6 +20,7 @@ export const getOrCreateDid = async (
     provider: didProvider,
     resolver,
   });
+
   await did.authenticate();
   return did;
 };

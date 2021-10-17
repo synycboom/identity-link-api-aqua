@@ -8,4 +8,5 @@ const requireEnv = (name: string): string => {
 
 export default {
   REACT_APP_CERAMIC_URL: requireEnv('REACT_APP_CERAMIC_URL'),
+  REACT_APP_GITHUB_SERVICE_ID: requireEnv('REACT_APP_GITHUB_SERVICE_ID'),
 };

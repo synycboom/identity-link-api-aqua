@@ -1,0 +1,24 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
+
+data GithubChallenge:
+  challengeCode: string
+
+data GithubRequestResult:
+  code: u32
+  data: GithubChallenge
+  error: string
+  requestId: string
+
+data GithubIdentity:
+  attestation: string
+
+data GithubVerifyResult:
+  code: u32
+  data: GithubIdentity
+  error: string
+  requestId: string
+
+service GithubRequester("github-requester"):
+  onRequestResult(res: GithubRequestResult)
+  onVerifyResult(res: GithubVerifyResult)

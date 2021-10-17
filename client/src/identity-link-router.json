@@ -8,10 +8,10 @@
             "node": "12D3KooWD7CvsYcpF9HE9CCV9aY3SJ317tkXVykjtZnht2EbzDPm",
             "hashDependencies": [
                 "hash:1a5a7286dc29b76be4752f4cacac8c0122eea9f1d370d7777bcc51493bf3b6b7",
-                "hash:364edb0de79b536026aff1f9057324815fec89fd9f63dd65aba82ff51ddd9cc7"
+                "hash:8f24526ec120f1fca1c23dbe0fc1de1a64c38ca60ef755fd1775980d1f7801ef"
             ],
-            "blueprint_id": "10a32e8f21e1be879be5e197e7e3ce287d46b798d980e8d66eea02ce944bb470",
-            "id": "bf241a95-25d0-4a65-b9c3-8eca476a1f3e"
+            "blueprint_id": "d565d996343750c60940ce2dedd643411bbf88139c7967aa21ea62acc176e45c",
+            "id": "3901bb12-f696-4023-84f8-f5b828ef0d14"
         }
     },
     "modules": {
@@ -26,7 +26,7 @@
                     "tmp": "/tmp"
                 }
             },
-            "hash": "364edb0de79b536026aff1f9057324815fec89fd9f63dd65aba82ff51ddd9cc7"
+            "hash": "8f24526ec120f1fca1c23dbe0fc1de1a64c38ca60ef755fd1775980d1f7801ef"
         },
         "sqlite3": {
             "file": "./artifacts/sqlite3.wasm",
