@@ -185,7 +185,7 @@ const VerifyPage: React.FC = () => {
         action: async () => {
           setLoadingIndex(0);
           await startRequest(
-            setting.REACT_APP_GITHUB_SERVICE_ID,
+            setting.REACT_APP_TWITTER_SERVICE_ID,
             requestTwitter
           );
           message.loading('Loading challenge...', 1);
