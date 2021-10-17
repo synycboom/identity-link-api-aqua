@@ -39,8 +39,11 @@ export const disconnectFromRelay = async () => {
 };
 
 export const startRouterHeartbeat = () => {
-  updateRouter();
-  updateRouterInterval = setInterval(updateRouter, updateRouterIntervalTime);
+  const update = () => {
+    updateRouter('github-identity-link-service');
+    updateRouter('twitter-identity-link-service');
+  };
+  updateRouterInterval = setInterval(update, updateRouterIntervalTime);
 };
 
 export const stopRouterHeartbeat = () => {

@@ -10,7 +10,7 @@ const { node: servicePeerId, id: serviceId } =
   config.services['identity-link-router'];
 const privateKey = createPrivateKey(settings.ED25519_PRIVATE_KEY_PEM);
 
-export default async function updateRouter() {
+export default async function updateRouter(serviceId: string) {
   const meta = { updatedAt: new Date() };
   if (!Fluence.getStatus().isConnected) {
     logger.warn(
@@ -21,7 +21,7 @@ export default async function updateRouter() {
 
   const { relayPeerId, peerId } = Fluence.getStatus();
   const payload = JSON.stringify({
-    service_id: 'github-identity-link-service',
+    service_id: serviceId,
     peer_id: peerId,
     relay_peer_id: relayPeerId,
   });
