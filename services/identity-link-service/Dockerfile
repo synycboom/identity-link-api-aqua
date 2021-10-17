@@ -26,6 +26,8 @@ COPY --from=builder /app/node_modules /app/node_modules
 
 COPY --from=builder /app/dist /app/dist
 
+COPY ./keys /app/keys
+
 EXPOSE 8080
 
 CMD ["node", "/app/dist/bundle.js"]
