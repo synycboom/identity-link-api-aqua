@@ -69,7 +69,7 @@ impl Manager {
         };
         let mut stmt = self.conn
             .prepare("
-                SELECT * FROM router WHERE service_id=\"?\" LIMIT 1; 
+                SELECT * FROM router WHERE service_id=? LIMIT 1; 
             ")?;
         
         stmt.bind(1, &Value::String(service_id.to_string()))?;

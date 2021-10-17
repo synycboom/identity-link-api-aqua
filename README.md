@@ -10,7 +10,7 @@ https://swimlanes.io/u/PtF3s142_
 - This will generate private/public keys in various formats and they are copied to identity-link-service and identity-link-router
 ```
 $ scripts
-$ ./gen-keyparis.sh
+$ ./gen-keypairs.sh
 ```
 
 ## Build identity-link-router

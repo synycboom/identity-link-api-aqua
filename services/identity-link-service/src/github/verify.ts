@@ -155,7 +155,10 @@ export default async function verifyAndSendResult(
         rawUrl = gists[0].files[fileName].raw_url;
       }
     } catch (err) {
-      logger.debug(`[sendSignedJWT]: got an error while finding a gist url`, meta);
+      logger.debug(
+        `[sendSignedJWT]: got an error while finding a gist url`,
+        meta
+      );
 
       await onVerifyResult(
         internalError(requestId, 'Internal Server Error'),
@@ -166,10 +169,10 @@ export default async function verifyAndSendResult(
     }
   }
   if (!rawUrl) {
-      await onVerifyResult(
-        permissionError(requestId, `"gistUrl" is not found`),
-        reqPeer
-      );
+    return await onVerifyResult(
+      permissionError(requestId, `"gistUrl" is not found`),
+      reqPeer
+    );
   }
 
   meta = { ...meta, rawUrl };
@@ -208,10 +211,7 @@ export default async function verifyAndSendResult(
       type: 'Github',
     });
 
-    await onVerifyResult(
-      success(requestId, attestation),
-      reqPeer
-    );
+    await onVerifyResult(success(requestId, attestation), reqPeer);
   } catch (err) {
     logger.debug(`[sendSignedJWT]: cannot issue attestation`, meta);
 

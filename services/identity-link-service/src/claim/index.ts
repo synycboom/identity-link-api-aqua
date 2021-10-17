@@ -1,7 +1,6 @@
 import { DID } from 'dids';
 import KeyResolver from '@ceramicnetwork/key-did-resolver';
 import didJWT from 'did-jwt';
-import { getResolver } from 'key-did-resolver';
 import CeramicClient from '@ceramicnetwork/http-client';
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver';
 import * as settings from '@/setting';
@@ -10,12 +9,11 @@ import { Issue } from '@/claim/type';
 const privateKey = settings.ES256K_PRIVATE_KEY_HEX;
 const publicKey = settings.ES256K_PUBLIC_KEY_HEX;
 const issuerDomain = settings.VERIFICATION_ISSUER_DOMAIN;
-// const ceramic = new CeramicClient(settings.CERAMIC_CLIENT_URL);
+const ceramic = new CeramicClient(settings.CERAMIC_CLIENT_URL);
 const resolver = {
   registry: {
-    ...getResolver(),
-    // ...KeyResolver.getResolver(),
-    // ...ThreeIdResolver.getResolver(ceramic),
+    ...KeyResolver.getResolver(),
+    ...ThreeIdResolver.getResolver(ceramic),
   },
 };
 

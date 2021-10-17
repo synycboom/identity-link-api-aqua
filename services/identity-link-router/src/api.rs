@@ -140,6 +140,7 @@ fn get_service(service_id: String) -> ServiceRoutingReponse {
         Err(err) => {
             log::error!("[get_service]: failed to query a service {}\n", err);
             res.code = 500;
+            res.error = String::from("internal service error");
 
             return res;
         },

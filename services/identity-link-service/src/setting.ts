@@ -16,7 +16,7 @@ const requireEnv = (name: string): string => {
   return env;
 };
 
-// export const CERAMIC_CLIENT_URL = requireEnv('CERAMIC_CLIENT_URL');
+export const CERAMIC_CLIENT_URL = requireEnv('CERAMIC_CLIENT_URL');
 
 export const VERIFICATION_ISSUER_DOMAIN = requireEnv(
   'VERIFICATION_ISSUER_DOMAIN'
