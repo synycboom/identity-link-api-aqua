@@ -132,6 +132,13 @@ fn get_service(service_id: String) -> ServiceRoutingReponse {
 
     match mgr.get_service(&service_id) {
         Ok(service) => {
+            if service.service_id == "" {
+                res.code = 404;
+                res.error = String::from("service is not found");
+
+                return res;
+            }
+
             res.routing = service;
             res.code = 200;
 
