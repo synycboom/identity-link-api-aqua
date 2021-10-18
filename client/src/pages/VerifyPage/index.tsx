@@ -5,7 +5,7 @@ import { fromDagJWS } from 'dids/lib/utils';
 import PageLayout from 'src/components/PageLayout';
 import { useEffect, useState } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { accountState, requestState } from 'src/state';
+import { accountState, requestState, socialJWTState } from 'src/state';
 import { copyTextToClipboard } from 'src/helpers';
 import {
   request as requestGithub,
@@ -16,6 +16,8 @@ import config from 'src/identity-link-router.json';
 import { Fluence } from '@fluencelabs/fluence';
 import setting from 'src/setting';
 import { v4 as uuidv4 } from 'uuid';
+import { MessageType } from 'antd/lib/message';
+import { setStream } from 'src/helpers/stream';
 
 const { Title } = Typography;
 const { Step } = Steps;
@@ -24,6 +26,18 @@ const DEFAULT_DATA = {
   requestId: '',
   verifyId: '',
   challengeCode: '',
+};
+
+const hide: Record<string, MessageType> = {};
+
+const setHideMessage = (requestId: string, messageType: MessageType) => {
+  hide[requestId] = messageType;
+};
+
+const hideMessage = (requestId: string) => {
+  if (typeof hide[requestId] !== 'function') return;
+  hide[requestId]();
+  delete hide[requestId];
 };
 
 const VerifyPage: React.FC = () => {
@@ -35,6 +49,7 @@ const VerifyPage: React.FC = () => {
   const [data, setData] = useState(DEFAULT_DATA);
   const { connected, did } = useRecoilValue(accountState);
   const [requests, setRequests] = useRecoilState(requestState);
+  const [socialJWT, setSocialJWTState] = useRecoilState(socialJWTState);
 
   const clear = () => {
     setData(DEFAULT_DATA);
@@ -43,7 +58,7 @@ const VerifyPage: React.FC = () => {
 
   const startRequest = async (
     identityLinkServiceId: string,
-    requestFn: any
+    requestFn: typeof requestGithub | typeof requestTwitter
   ) => {
     const { node: routerPeerId, id: routerServiceId } =
       config.services['identity-link-router'];
@@ -60,6 +75,7 @@ const VerifyPage: React.FC = () => {
       hasRelayPeer: true,
     };
     const requestId = uuidv4();
+    setHideMessage(requestId, message.loading('Loading challenge...', 10));
     setData({
       ...DEFAULT_DATA,
       requestId,
@@ -73,6 +89,7 @@ const VerifyPage: React.FC = () => {
   };
 
   const requestCallback = (challengeCode: string) => {
+    hideMessage(data.requestId);
     setData({
       ...data,
       challengeCode,
@@ -105,6 +122,7 @@ const VerifyPage: React.FC = () => {
       ...data,
       verifyId: requestId,
     });
+    setHideMessage(requestId, message.loading('Verify...', 10));
     const payload = {
       req: { jws: fromDagJWS(jws) },
       requestId,
@@ -113,8 +131,14 @@ const VerifyPage: React.FC = () => {
     await verifyFn(router, payload);
   };
 
-  const verifyCallback = (attestation: string) => {
-    console.log(attestation);
+  const verifyCallback = async (attestation: string) => {
+    const newSocialData = {
+      ...socialJWT,
+      [provider]: attestation,
+    };
+    setSocialJWTState(newSocialData);
+    await setStream(did!, newSocialData);
+    hideMessage(data.verifyId);
     setLoadingIndex(-1);
     clear();
     message.success('Verify succuess!', 2, () => history.push('/'));
@@ -149,7 +173,6 @@ const VerifyPage: React.FC = () => {
             setting.REACT_APP_GITHUB_SERVICE_ID,
             requestGithub
           );
-          message.loading('Loading challenge...', 1);
         },
       },
       {
@@ -174,7 +197,6 @@ const VerifyPage: React.FC = () => {
         action: async () => {
           setLoadingIndex(3);
           await startVerify(setting.REACT_APP_GITHUB_SERVICE_ID, verifyGithub);
-          message.loading('Verify...', 2);
         },
       },
     ],
@@ -188,7 +210,6 @@ const VerifyPage: React.FC = () => {
             setting.REACT_APP_TWITTER_SERVICE_ID,
             requestTwitter
           );
-          message.loading('Loading challenge...', 1);
         },
       },
       {
@@ -213,7 +234,6 @@ const VerifyPage: React.FC = () => {
             setting.REACT_APP_TWITTER_SERVICE_ID,
             verifyTwitter
           );
-          message.loading('Verify...', 2);
         },
       },
     ],

@@ -1,5 +1,6 @@
 import { DID } from 'dids';
-import { atom, RecoilState } from 'recoil';
+import { atom, RecoilState, selector } from 'recoil';
+import jwt_decode from 'jwt-decode';
 
 export interface IAccountState {
   connected: boolean;
@@ -26,4 +27,41 @@ const defaultRequestState: IRequestState = [];
 export const requestState: RecoilState<IRequestState> = atom({
   key: 'requestState',
   default: defaultRequestState,
+});
+
+export const defaultSocialJWTState: StreamSocialAccount = {
+  github: '',
+  twitter: '',
+};
+export interface StreamSocialAccount {
+  github: string;
+  twitter: string;
+}
+export const socialJWTState = atom({
+  key: 'socialJWTState',
+  default: defaultSocialJWTState,
+});
+
+export interface ISocialAccount {
+  type: string;
+  username: string;
+  url: string;
+}
+const getDataFromJWT = (jwt: string): ISocialAccount => {
+  const {
+    vc: {
+      credentialSubject: { account },
+    },
+  }: any = jwt_decode(jwt);
+  return account;
+};
+export const socialDataState = selector({
+  key: 'socialDataState',
+  get: ({ get }) => {
+    const social = get(socialJWTState);
+    return {
+      github: social.github ? getDataFromJWT(social.github) : null,
+      twitter: social.twitter ? getDataFromJWT(social.twitter) : null,
+    };
+  },
 });

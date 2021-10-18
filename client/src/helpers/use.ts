@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { SetterOrUpdater, useRecoilState } from 'recoil';
-import { accountState, IAccountState } from 'src/state';
+import { SetterOrUpdater, useRecoilState, useSetRecoilState } from 'recoil';
+import { accountState, IAccountState, socialJWTState } from 'src/state';
 import { getOrCreateDid } from 'src/helpers/did';
 import wallet from 'src/helpers/wallet';
+import { getStream } from 'src/helpers/stream';
 
 export const useAccount = (): [
   IAccountState,
@@ -11,6 +12,7 @@ export const useAccount = (): [
 ] => {
   const [account, setAccount] = useRecoilState(accountState);
   const [loading, setLoading] = useState(false);
+  const setSocialJWT = useSetRecoilState(socialJWTState);
 
   useEffect(() => {
     async function checkConnect() {
@@ -30,6 +32,7 @@ export const useAccount = (): [
 
       const address = await wallet.getAddress();
       const did = await getOrCreateDid(address, wallet.getProvider());
+      setSocialJWT(await getStream(did));
       setAccount({
         connected: true,
         address: address || '',

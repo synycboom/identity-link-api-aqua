@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Fluence } from '@fluencelabs/fluence';
 import { krasnodar } from '@fluencelabs/fluence-network-environment';
 import { registerGithubRequester } from 'src/_aqua/github-requester';
+import { registerTwitterRequester } from 'src/_aqua/twitter-requester';
 
 import 'antd/dist/antd.css';
 import './App.css';
@@ -49,6 +50,39 @@ const App: React.FC = () => {
         ]);
       },
     });
+
+    registerTwitterRequester({
+      onRequestResult({ code, error, requestId, data }) {
+        console.log({ code, error, requestId, data });
+        if (code !== 200) {
+          message.error(error);
+          return;
+        }
+        setRequests([
+          ...requests,
+          {
+            id: requestId,
+            data,
+          },
+        ]);
+      },
+      onVerifyResult({ code, error, requestId, data }) {
+        console.log({ code, error, requestId, data });
+
+        if (code !== 200) {
+          message.error(error);
+          return;
+        }
+        setRequests([
+          ...requests,
+          {
+            id: requestId,
+            data,
+          },
+        ]);
+      },
+    });
+
     setConnect(true);
   };
 

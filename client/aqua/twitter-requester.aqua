@@ -1,0 +1,24 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "requester.aqua"
+
+data TwitterChallenge:
+  challengeCode: string
+
+data TwitterRequestResult:
+  code: u32
+  data: TwitterChallenge
+  error: string
+  requestId: string
+
+data TwitterIdentity:
+  attestation: string
+
+data TwitterVerifyResult:
+  code: u32
+  data: TwitterIdentity
+  error: string
+  requestId: string
+
+service TwitterRequester("twitter-requester"):
+  onRequestResult(res: TwitterRequestResult)
+  onVerifyResult(res: TwitterVerifyResult)
