@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Typography, List, Button } from 'antd';
+import { Typography, List, Button, message } from 'antd';
 import HomePageStyle from './style';
 import PageLayout from 'src/components/PageLayout';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -32,6 +32,7 @@ const HomePage: React.FC = () => {
     await setStream(did!, newSocialJWT);
     setSocialJWT(newSocialJWT);
     setLoadingBtn('');
+    message.success('Unlink success!', 2);
   };
 
   return (

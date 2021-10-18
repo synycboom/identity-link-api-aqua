@@ -85,7 +85,8 @@ const VerifyPage: React.FC = () => {
       requestId,
       reqPeer,
     };
-    await requestFn(router, payload);
+    const errorMessage = await requestFn(router, payload);
+    if (errorMessage) message.error(errorMessage);
   };
 
   const requestCallback = (challengeCode: string) => {
@@ -128,7 +129,8 @@ const VerifyPage: React.FC = () => {
       requestId,
       reqPeer,
     };
-    await verifyFn(router, payload);
+    const errorMessage = await verifyFn(router, payload);
+    if (errorMessage) message.error(errorMessage);
   };
 
   const verifyCallback = async (attestation: string) => {
@@ -141,7 +143,7 @@ const VerifyPage: React.FC = () => {
     hideMessage(data.verifyId);
     setLoadingIndex(-1);
     clear();
-    message.success('Verify succuess!', 2, () => history.push('/'));
+    message.success('Verify succuess!', 1, () => history.push('/'));
   };
 
   useEffect(() => {
