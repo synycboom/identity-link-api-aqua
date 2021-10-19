@@ -6,7 +6,9 @@ This project aims to show that the identity link service API can be implemented 
 For more information of how full identity linking flow works, please visit https://github.com/ceramicstudio/identitylink-services/blob/master/API.md.
 
 ## Demo
-https://identity-link-service.firebaseapp.com/
+App - https://identity-link-service.firebaseapp.com/
+
+Video - https://youtu.be/se0n_Hy8k_c
 
 ## Overview
 This project consists of main 2 services and 1 web app.
