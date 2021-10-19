@@ -3,11 +3,14 @@ import { Button } from 'antd';
 import { useAccount } from 'src/helpers/use';
 import { getOrCreateDid } from 'src/helpers/did';
 import wallet from 'src/helpers/wallet';
-import { defaultAccountState } from 'src/state';
+import { defaultAccountState, socialJWTState } from 'src/state';
+import { getStream } from 'src/helpers/stream';
+import { useSetRecoilState } from 'recoil';
 
 const ConnectButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [account, setAccount, accountLoading] = useAccount();
+  const setSocialJWT = useSetRecoilState(socialJWTState);
 
   const connect = async () => {
     setLoading(true);
@@ -17,6 +20,7 @@ const ConnectButton: React.FC = () => {
 
     // get or create did
     const did = await getOrCreateDid(address, ethProvider);
+    setSocialJWT(await getStream(did));
     setAccount({
       connected: true,
       address,
