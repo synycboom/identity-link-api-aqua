@@ -25,6 +25,8 @@ impl Manager {
                         service_id TEXT NOT NULL PRIMARY KEY,
                         peer_id TEXT NOT NULL,
                         relay_peer_id TEXT NOT NULL,
+                        payload TEXT NOT NULL,
+                        signature TEXT NOT NULL,
                         updated_at DATETIME NOT NULL
                     );
             ")
@@ -37,8 +39,12 @@ impl Manager {
                     service_id,
                     peer_id,
                     relay_peer_id,
+                    payload,
+                    signature,
                     updated_at
                 ) VALUES(
+                    ?,
+                    ?,
                     ?,
                     ?,
                     ?,
@@ -48,6 +54,8 @@ impl Manager {
                 DO UPDATE SET
                     peer_id=excluded.peer_id,
                     relay_peer_id=excluded.relay_peer_id,
+                    payload=excluded.payload,
+                    signature=excluded.signature,
                     updated_at=excluded.updated_at;
             ")?;
 
@@ -55,7 +63,9 @@ impl Manager {
         stmt.bind(1, &Value::String(service.service_id.to_string()))?;
         stmt.bind(2, &Value::String(service.peer_id.to_string()))?;
         stmt.bind(3, &Value::String(service.relay_peer_id.to_string()))?;
-        stmt.bind(4, &Value::String(format!("{:?}", Utc::now())))?;
+        stmt.bind(4, &Value::String(service.payload.to_string()))?;
+        stmt.bind(5, &Value::String(service.signature.to_string()))?;
+        stmt.bind(6, &Value::String(format!("{:?}", Utc::now())))?;
         stmt.cursor().next()?;
 
         Ok(())
@@ -66,6 +76,8 @@ impl Manager {
             service_id: String::from(""),
             peer_id: String::from(""),
             relay_peer_id: String::from(""),
+            payload: String::from(""),
+            signature: String::from(""),
         };
         let mut stmt = self.conn
             .prepare("
@@ -85,6 +97,12 @@ impl Manager {
             }
             if let Some(relay_peer_id) = row[2].as_string() {
                 res.relay_peer_id = String::from(relay_peer_id);
+            }
+            if let Some(payload) = row[3].as_string() {
+                res.payload = String::from(payload);
+            }
+            if let Some(signature) = row[4].as_string() {
+                res.signature = String::from(signature);
             }
         }
 

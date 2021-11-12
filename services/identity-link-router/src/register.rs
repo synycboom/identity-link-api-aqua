@@ -3,10 +3,25 @@ use serde::{Serialize, Deserialize};
 
 #[marine]
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
 pub struct ServiceRegistrationPayload {
     pub service_id: String,
     pub peer_id: String,
     pub relay_peer_id: String,
+    pub payload: String,
+    pub signature: String,
+}
+
+impl Default for ServiceRegistrationPayload {
+    fn default() -> Self {
+        Self {
+            service_id: Default::default(),
+            peer_id: Default::default(),
+            relay_peer_id: Default::default(),
+            payload: Default::default(),
+            signature: Default::default(),
+        }
+    }
 }
 
 #[marine]
