@@ -37,7 +37,7 @@ We have the IdentityLinkService send a heartbeat to the IdentityLinkRouter. The 
 No, it can't. We bundled the public key in the IdentityLinkRouter, and put the private key in the IdentityLinkService. Every time it has to send the heartbeat, it will sign a paylaod and attached the signature to the request. In this way, the IdentityLinkRouter can verify the signature and store this as a record in SQLite DB.
 
 ### So, does it mean someone can modify the SQLite DB store in the IdentityLinkRouter?
-Yes, we don't have to enough time to fix this issue. However we can store the signature with the payload, so that it cannot be modified by other services running in the same node.
+No, we store a signature with its payload into DB. If the content in DB is change the signature will be invalid.
 
 ### Service Registration Flow
 <p width="100%">
@@ -49,9 +49,6 @@ Since Fluence aquamarine ecosystem still does not support Promise with FluenceJS
 <p width="100%">
 <img alt="identity-link-flow" align="center" src="docs/IdentityLinkFlow.png"/>
 </p>
-
-### Note
-There is a missing flow. The flow of validating a verifiable credential which need to implement a service for serving .well-known/did.json, and if we want it to verify via P2P we have to implement a new DID resolver but we don't have enough effort now.
 
 ## Running up this project
 This project has to be run in-order as described below.
