@@ -1,0 +1,9 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+
+data DIDDocumentResponse:
+  code: u32
+  data: string
+  error: string
+
+service IdentityLinkDIDService("identity-link-did-service"):
+  getDIDDocument(did: string) -> DIDDocumentResponse

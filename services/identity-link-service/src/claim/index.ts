@@ -7,7 +7,6 @@ import * as settings from '@/setting';
 import { Issue } from '@/claim/type';
 
 const privateKey = settings.ES256K_PRIVATE_KEY_HEX;
-const publicKey = settings.ES256K_PUBLIC_KEY_HEX;
 const issuerDomain = settings.VERIFICATION_ISSUER_DOMAIN;
 const ceramic = new CeramicClient(settings.CERAMIC_CLIENT_URL);
 const resolver = {
@@ -67,7 +66,7 @@ export const issue = async ({
       },
     },
     {
-      issuer: `did:web:${issuerDomain}`,
+      issuer: `did:identity_link:${issuerDomain}`,
       signer,
     }
   );
