@@ -5,6 +5,16 @@ This project aims to show that the identity link service API can be implemented 
 
 For more information of how full identity linking flow works, please visit https://github.com/ceramicstudio/identitylink-services/blob/master/API.md.
 
+## Demo
+App - https://identity-link-service.firebaseapp.com/
+
+Video - https://youtu.be/se0n_Hy8k_c
+
+## Architecture
+<p width="100%">
+<img alt="architecture" align="center" src="docs/IdentityLinkService.jpg"/>
+</p>
+
 ## Overview
 This project consists of main 2 services and 1 web app.
 - **IdentityLinkService**: is the main service taking care of account verification and all of the stuffs. It is implemented in NodeJS and connected to one of Fluence nodes via a relay server. This service has 2 sub-services which are the twitter identity link service and the github identity link service.

@@ -5,7 +5,13 @@ import PageLayout from 'src/components/PageLayout';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { accountState, socialDataState, socialJWTState } from 'src/state';
 import { setStream } from 'src/helpers/stream';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { verifyJWT } from 'did-jwt';
+import { Resolver } from 'did-resolver';
+
+import IdentityLinkDIDResolver from 'src/identity-link-did-resolver';
+import config from 'src/identity-link-router.json';
+import setting from 'src/setting';
 
 const { Title } = Typography;
 
@@ -16,6 +22,17 @@ type SocialType = {
   name: string;
   link: string;
 };
+
+const { node: routerPeerId, id: routerServiceId } =
+  config.services['identity-link-router'];
+
+const identityLinkResolver = IdentityLinkDIDResolver.getResolver({
+  routerPeerId,
+  routerServiceId,
+  identityLinkDIDServiceId: setting.REACT_APP_IDENTITY_LINK_DID_SERVICE_ID,
+});
+
+const didResolver = new Resolver(identityLinkResolver);
 
 const HomePage: React.FC = () => {
   const { connected, did } = useRecoilValue(accountState);
@@ -34,6 +51,28 @@ const HomePage: React.FC = () => {
     setLoadingBtn('');
     message.success('Unlink success!', 2);
   };
+
+  useEffect(() => {
+    Object.entries(socialJWT).forEach(async ([provider, jwt]) => {
+      if (!jwt) return;
+
+      try {
+        await verifyJWT(jwt, {
+          resolver: didResolver,
+        });
+      } catch (err: any) {
+        if (
+          err.message.includes('invalid_jwt') ||
+          err.message.includes('invalid_signature')
+        ) {
+          unlinkAccount(provider as SocialProvider);
+          return;
+        }
+
+        console.error(err);
+      }
+    });
+  }, [socialJWT]);
 
   return (
     <HomePageStyle>

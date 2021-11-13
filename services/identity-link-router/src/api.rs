@@ -19,7 +19,7 @@ fn update_service(req: ServiceRegistrationRequest) -> ServiceRegistrationRespons
     };
 
     let signature;
-    if let Ok(h) = hex::decode(req.signature) {
+    if let Ok(h) = hex::decode(&req.signature) {
         signature = h;
     } else {
         res.code = 403;
@@ -36,7 +36,7 @@ fn update_service(req: ServiceRegistrationRequest) -> ServiceRegistrationRespons
         return res;
     }
 
-    let deserialized: ServiceRegistrationPayload;
+    let mut deserialized: ServiceRegistrationPayload;
     if let Ok(d) = serde_json::from_slice(message) {
         deserialized = d;
     } else {
@@ -64,6 +64,9 @@ fn update_service(req: ServiceRegistrationRequest) -> ServiceRegistrationRespons
 
         return res;
     }
+
+    deserialized.payload = req.payload;
+    deserialized.signature = req.signature;
 
     let mgr;
     match sql::Manager::create() {
@@ -107,6 +110,8 @@ fn get_service(service_id: String) -> ServiceRoutingReponse {
             service_id: String::from(""),
             peer_id: String::from(""),
             relay_peer_id: String::from(""),
+            payload: String::from(""),
+            signature: String::from(""),
         }
     };
 
@@ -130,20 +135,9 @@ fn get_service(service_id: String) -> ServiceRoutingReponse {
         return res;
     }
 
+    let service;
     match mgr.get_service(&service_id) {
-        Ok(service) => {
-            if service.service_id == "" {
-                res.code = 404;
-                res.error = String::from("service is not found");
-
-                return res;
-            }
-
-            res.routing = service;
-            res.code = 200;
-
-            return res;
-        },
+        Ok(s) => service = s,
         Err(err) => {
             log::error!("[get_service]: failed to query a service {}\n", err);
             res.code = 500;
@@ -152,4 +146,63 @@ fn get_service(service_id: String) -> ServiceRoutingReponse {
             return res;
         },
     }
+
+    if service.service_id == "" {
+        res.code = 404;
+        res.error = String::from("service is not found");
+
+        return res;
+    }
+
+    let signature;
+    if let Ok(h) = hex::decode(&service.signature) {
+        signature = h;
+    } else {
+        res.code = 500;
+        res.error = String::from("internal service error [signature decoding failure]");
+
+        return res;
+    }
+
+    let message = service.payload.as_bytes();
+    if !verifier::verify(message, &signature) {
+        res.code = 500;
+        res.error = String::from("internal service error [signature is invalid]");
+
+        return res;
+    }
+
+    let deserialized: ServiceRegistrationPayload;
+    if let Ok(d) = serde_json::from_slice(message) {
+        deserialized = d;
+    } else {
+        res.code = 500;
+        res.error = String::from("internal service error [data is not deserializeable]");
+
+        return res;
+    }
+
+    if deserialized.service_id != service.service_id {
+        res.code = 500;
+        res.error = String::from("internal service error [signature is invalid]");
+
+        return res;
+    }
+    if deserialized.peer_id != service.peer_id {
+        res.code = 500;
+        res.error = String::from("internal service error [signature is invalid]");
+
+        return res;
+    }
+    if deserialized.relay_peer_id != service.relay_peer_id {
+        res.code = 500;
+        res.error = String::from("internal service error [signature is invalid]");
+
+        return res;
+    }
+
+    res.routing = service;
+    res.code = 200;
+
+    return res;
 }

@@ -28,7 +28,6 @@ func request(router: Router, payload: GitHubRequestPayload) -> string:
   on s.routing.peer_id via s.routing.relay_peer_id:
     GithubIdentityLinkService s.routing.service_id
     GithubIdentityLinkService.githubRequest(payload.req, payload.requestId, payload.reqPeer)
-  <- ""
 
 func verify(router: Router, payload: GithubVerifyPayload) -> string:
   on router.routerPeerId:
@@ -40,4 +39,3 @@ func verify(router: Router, payload: GithubVerifyPayload) -> string:
   on s.routing.peer_id via s.routing.relay_peer_id:
     GithubIdentityLinkService s.routing.service_id
     GithubIdentityLinkService.githubVerify(payload.req, payload.requestId, payload.reqPeer)
-  <- ""
