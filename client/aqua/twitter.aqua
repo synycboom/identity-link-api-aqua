@@ -1,4 +1,3 @@
-
 import "@fluencelabs/aqua-lib/builtin.aqua"
 import "identity-link-router.aqua"
 import "twitter-identity-link-service.aqua"
@@ -29,7 +28,6 @@ func requestTwitter(router: Router, payload: TwitterRequestPayload) -> string:
   on s.routing.peer_id via s.routing.relay_peer_id:
     TwitterIdentityLinkService s.routing.service_id
     TwitterIdentityLinkService.twitterRequest(payload.req, payload.requestId, payload.reqPeer)
-  <- ""
 
 func verifyTwitter(router: Router, payload: TwitterVerifyPayload) -> string:
   on router.routerPeerId:
@@ -41,4 +39,3 @@ func verifyTwitter(router: Router, payload: TwitterVerifyPayload) -> string:
   on s.routing.peer_id via s.routing.relay_peer_id:
     TwitterIdentityLinkService s.routing.service_id
     TwitterIdentityLinkService.twitterVerify(payload.req, payload.requestId, payload.reqPeer)
-  <- ""

@@ -1,0 +1,35 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "identity-link-router.aqua"
+import "requester.aqua"
+
+data Router:
+  routerPeerId: PeerId
+  routerServiceId: string
+  identityLinkDIDServiceId: string
+
+data Error:
+  code: u32
+  error: string
+
+data DIDDocumentResponse:
+  code: u32
+  data: string
+  error: string
+
+service IdentityLinkDIDService("identity-link-did-service"):
+  getDIDDocument(did: string) -> DIDDocumentResponse
+
+func getDIDDocument(router: Router, did: string, success: string -> (), error: u32, string -> ()):
+  on router.routerPeerId:
+    IdentityLinkRouter router.routerServiceId
+    s <- IdentityLinkRouter.get_service(router.identityLinkDIDServiceId)
+  if s.code != 200:
+    error(s.code, s.error)
+  else:
+    on s.routing.peer_id via s.routing.relay_peer_id:
+      IdentityLinkDIDService s.routing.service_id
+      r <- IdentityLinkDIDService.getDIDDocument(did)
+    if r.code != 200:
+      error(r.code, r.error)
+    else:
+      success(r.data)
