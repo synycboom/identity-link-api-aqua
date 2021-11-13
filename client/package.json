@@ -17,7 +17,7 @@
     "@ceramicnetwork/3id-did-resolver": "^1.4.4",
     "@ceramicnetwork/http-client": "^1.4.0",
     "@ceramicstudio/idx": "^0.12.2",
-    "@fluencelabs/fluence": "^0.13.0",
+    "@fluencelabs/fluence": "^0.14.3",
     "@fluencelabs/fluence-network-environment": "^1.0.10",
     "antd": "^4.16.13",
     "dids": "^2.4.0",
@@ -37,8 +37,8 @@
     "web3modal": "^1.9.4"
   },
   "devDependencies": {
-    "@fluencelabs/aqua": "^0.3.2-233",
-    "@fluencelabs/aqua-lib": "^0.1.14",
+    "@fluencelabs/aqua": "^0.4.1-240",
+    "@fluencelabs/aqua-lib": "^0.2.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
