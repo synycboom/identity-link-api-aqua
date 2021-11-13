@@ -4,6 +4,8 @@ data ServiceRegistrationPayload:
   service_id: string
   peer_id: string
   relay_peer_id: string
+  payload: string
+  signature: string
 
 data ServiceRegistrationRequest:
   payload: string
